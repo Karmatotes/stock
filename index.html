@@ -170,6 +170,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
           <option value="Kadhi Fabric">Kadhi Fabric</option>
           <option value="Non-woven">Non-woven</option>
           <option value="POV Sheet">POV Sheet</option>
+          <option value="Parachute">Parachute</option>
+          <option value="Matt Fabric">Matt Fabric</option>
         </optgroup>
         <optgroup label="Handles (Metres)">
           <option value="Handles">Handles</option>
@@ -204,6 +206,28 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       </div>
     </div>
     <div class="total-display" id="si-total-display"></div>
+    <!-- GSM + Variation — shown only for fabrics that have them -->
+    <div id="si-fabric-detail" style="display:none;margin-bottom:14px;padding:10px 12px;background:#EFF6FF;border-radius:8px;border:1px solid #BFDBFE;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:.4px">Fabric Details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Variation</label>
+          <select class="form-control" id="si-variation">
+            <option value="">Select variation…</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>GSM</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select class="form-control" id="si-gsm" onchange="toggleInvCustomGSM()" style="flex:1">
+              <option value="">Select GSM…</option>
+            </select>
+            <input class="form-control" id="si-gsm-custom" type="text" placeholder="Custom" style="width:80px;display:none">
+            <span style="font-size:11px;font-weight:600;color:rgba(44,31,20,0.4);font-family:'DM Mono',monospace">GSM</span>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="section-label">Supplier Details</div>
     <div class="form-group">
       <label>Supplier Name <span class="req">*</span></label>
@@ -258,6 +282,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Kadhi Fabric">Kadhi Fabric</option>
       <option value="Non-woven">Non-woven</option>
       <option value="POV Sheet">POV Sheet</option>
+      <option value="Parachute">Parachute</option>
+      <option value="Matt Fabric">Matt Fabric</option>
       <option value="Handles">Handles</option>
       <option value="Zippers">Zippers</option>
       <option value="Lace">Lace</option>
@@ -412,7 +438,28 @@ function onMaterialChange(){
   updateTotal();
 }
 
-const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Handles','Zippers','Lace'];
+const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Zippers','Lace'];
+const INV_FABRIC_CONFIG={
+  'Jute Fabric':   {variations:['Half-White','Natural','Printed','Colored'],gsm:['14/15','13/13','12/12']},
+  'Cotton Canvas': {variations:['Natural','Colored','Laminated'],           gsm:['225','300','310','340','400','490','570']},
+  'Juco Fabric':   {variations:['Laminated','Non-Laminated'],               gsm:[]},
+  'Kadhi Fabric':  {variations:['Natural'],                                 gsm:['90','120','135','150']},
+};
+const INV_FABRICS_WITH_DETAIL=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric'];
+
+function toggleInvCustomGSM(){
+  const sel=document.getElementById('si-gsm');
+  const custom=document.getElementById('si-gsm-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='custom'?'block':'none';
+}
+
+function getInvGSM(){
+  const sel=document.getElementById('si-gsm');
+  const custom=document.getElementById('si-gsm-custom');
+  if(!sel)return'';
+  return sel.value==='custom'?(custom?custom.value:''):sel.value;
+}
 function getMaterialUnit(name){return METRES_MATERIALS.includes(name)?'m':'nos';}
 
 function updateTotal(){
@@ -446,8 +493,11 @@ async function submitStockIn(){
   const unit=mat?mat['Unit']:'';
   const btn=document.getElementById('si-submit');
   btn.disabled=true;btn.textContent='Saving...';
+  const variation=document.getElementById('si-variation')?document.getElementById('si-variation').value||'':'';
+  const gsm=getInvGSM();
   const result=await sheetPost({
     action:'stockIn',material,qty,unitCost,unit,supplier,
+    variation,gsm,
     reference:document.getElementById('si-reference').value||'',
     date:document.getElementById('si-date').value||''
   });
@@ -477,6 +527,10 @@ function resetStockIn(){
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('current-stock-display').style.display='none';
+  document.getElementById('si-fabric-detail').style.display='none';
+  if(document.getElementById('si-variation'))document.getElementById('si-variation').value='';
+  if(document.getElementById('si-gsm'))document.getElementById('si-gsm').value='';
+  if(document.getElementById('si-gsm-custom'))document.getElementById('si-gsm-custom').value='';
   document.getElementById('si-total-display').classList.remove('visible');
   document.getElementById('si-unit-hint').textContent='';
 }
