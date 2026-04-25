@@ -169,8 +169,10 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
         <optgroup label="Handles (Metres)">
           <option value="Handles">Handles</option>
         </optgroup>
-        <optgroup label="Hardware (Numbers)">
+        <optgroup label="Hardware">
           <option value="Zippers">Zippers</option>
+          <option value="Lace">Lace</option>
+          <option value="Runners">Runners</option>
           <option value="Dog Hooks">Dog Hooks</option>
           <option value="Buckles">Buckles</option>
           <option value="D-Ring">D-Ring</option>
@@ -253,12 +255,14 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="POV Sheet">POV Sheet</option>
       <option value="Handles">Handles</option>
       <option value="Zippers">Zippers</option>
+      <option value="Lace">Lace</option>
       <option value="Dog Hooks">Dog Hooks</option>
       <option value="Buckles">Buckles</option>
       <option value="D-Ring">D-Ring</option>
       <option value="Snap Magnetic Button">Snap Magnetic Button</option>
       <option value="Highlight">Highlight</option>
       <option value="Reveat">Reveat</option>
+      <option value="Runners">Runners</option>
       <option value="Packaging Bags">Packaging Bags</option>
       <option value="Packaging Boxes">Packaging Boxes</option>
     </select>
@@ -390,7 +394,7 @@ function onMaterialChange(){
   updateTotal();
 }
 
-const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Handles'];
+const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Handles','Zippers','Lace'];
 function getMaterialUnit(name){return METRES_MATERIALS.includes(name)?'m':'nos';}
 
 function updateTotal(){
