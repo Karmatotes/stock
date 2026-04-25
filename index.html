@@ -387,8 +387,7 @@ function onMaterialChange(){
       hint.textContent='Last purchase: '+fmtINR(lastEntry['Unit Cost'])+' per '+unit;
       document.getElementById('si-unit-cost').value=Number(lastEntry['Unit Cost'])||'';
     }else{
-      const isMetres=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Handles'].includes(matName);
-    hint.textContent='Unit: '+(isMetres?'Metres':'Nos (numbers)');
+      hint.textContent='Unit: '+(METRES_MATERIALS.includes(matName)?'Metres':'Nos (numbers)');
     }
   }else{display.style.display='none';hint.textContent='';}
   updateTotal();
