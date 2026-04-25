@@ -435,7 +435,24 @@ function onMaterialChange(){
       hint.textContent='Unit: '+(METRES_MATERIALS.includes(matName)?'Metres':'Nos (numbers)');
     }
   }else{display.style.display='none';hint.textContent='';}
-  updateTotal();
+  updateTotal();updateQtyHint();
+  // Show GSM + Variation for fabrics that have them
+  const detailWrap=document.getElementById('si-fabric-detail');
+  if(INV_FABRICS_WITH_DETAIL.includes(matName)){
+    detailWrap.style.display='flex';
+    const cfg=INV_FABRIC_CONFIG[matName];
+    const varSel=document.getElementById('si-variation');
+    varSel.innerHTML='<option value="">Select variation…</option>';
+    if(cfg&&cfg.variations)cfg.variations.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;varSel.appendChild(o);});
+    const gsmSel=document.getElementById('si-gsm');
+    gsmSel.innerHTML='<option value="">Select GSM…</option>';
+    if(cfg&&cfg.gsm&&cfg.gsm.length){
+      cfg.gsm.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g+' GSM';gsmSel.appendChild(o);});
+      const custom=document.createElement('option');custom.value='custom';custom.textContent='Custom…';gsmSel.appendChild(custom);
+    }
+  }else{
+    detailWrap.style.display='none';
+  }
 }
 
 const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Zippers','Lace'];
