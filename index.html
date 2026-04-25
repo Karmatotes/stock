@@ -97,6 +97,10 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bark);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .empty-state{text-align:center;padding:30px;color:rgba(44,31,20,0.35);font-size:13px}
+.btn-refresh{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .2s}
+.btn-refresh:hover{background:rgba(255,255,255,0.25)}
+.btn-refresh.spinning span{display:inline-block;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .date-filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .df-btn{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;color:var(--bark);transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
 .df-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -126,6 +130,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
   </div>
   <div class="header-right">
     <div class="date-badge" id="live-date"></div>
+    <button class="btn-refresh" id="btn-refresh" onclick="refreshData()"><span>↻</span> Refresh</button>
     <a href="https://karmatotes.github.io/tracker/" target="_blank" class="btn-link">&#8862; Production</a>
     <a href="https://karmatotes.github.io/orders/" target="_blank" class="btn-link">&#65291; Orders</a>
   </div>
@@ -311,6 +316,20 @@ async function sheetPost(body){
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','Saved \u00b7 karmatotes@gmail.com');return data;
   }catch(err){setSyncStatus('err','Save failed.');console.error(err);return null;}
+}
+
+async function refreshData(){
+  const btn=document.getElementById('btn-refresh');
+  if(btn){btn.classList.add('spinning');btn.disabled=true;}
+  try{
+    const [matData,logData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'})]);
+    if(matData&&matData.materials)materials=matData.materials;
+    if(logData&&logData.stockLog)stockLog=logData.stockLog;
+    renderStockLevels();renderAlertBar();renderLog();
+    showToast('✓ Refreshed');
+  }finally{
+    if(btn){btn.classList.remove('spinning');btn.disabled=false;}
+  }
 }
 
 async function initApp(){
