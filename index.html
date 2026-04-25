@@ -97,6 +97,16 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bark);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .empty-state{text-align:center;padding:30px;color:rgba(44,31,20,0.35);font-size:13px}
+.date-filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.df-btn{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;color:var(--bark);transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.df-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.df-btn:hover:not(.active){background:var(--cream)}
+.df-custom{display:none;gap:6px;align-items:center;flex-wrap:wrap}
+.df-custom.visible{display:flex}
+.df-input{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--bark);outline:none}
+.df-input:focus{border-color:var(--blue)}
+.df-label{font-size:11px;color:rgba(44,31,20,0.5);font-weight:500}
+.df-results{font-size:11px;color:rgba(44,31,20,0.4);margin-left:auto}
 </style>
 </head>
 <body>
@@ -214,6 +224,21 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 </div>
 
 <div class="page" id="page-log">
+  <div class="date-filter-bar">
+    <button class="df-btn active" id="df-all"       onclick="setInvDateFilter('all',this)">All Time</button>
+    <button class="df-btn"        id="df-thisweek"  onclick="setInvDateFilter('thisweek',this)">This Week</button>
+    <button class="df-btn"        id="df-thismonth" onclick="setInvDateFilter('thismonth',this)">This Month</button>
+    <button class="df-btn"        id="df-lastmonth" onclick="setInvDateFilter('lastmonth',this)">Last Month</button>
+    <button class="df-btn"        id="df-thisyear"  onclick="setInvDateFilter('thisyear',this)">This Year</button>
+    <button class="df-btn"        id="df-custom"    onclick="setInvDateFilter('custom',this)">Custom…</button>
+    <div class="df-custom" id="df-custom-wrap">
+      <span class="df-label">From</span>
+      <input class="df-input" type="date" id="df-from" onchange="renderLog()">
+      <span class="df-label">To</span>
+      <input class="df-input" type="date" id="df-to" onchange="renderLog()">
+    </div>
+    <span class="df-results" id="df-results"></span>
+  </div>
   <div class="log-filters">
     <button class="log-filter active" id="lf-all"  onclick="setLogFilter('all',this)">All</button>
     <button class="log-filter"        id="lf-in"   onclick="setLogFilter('IN',this)">Stock In</button>
@@ -434,6 +459,55 @@ function resetStockIn(){
   document.getElementById('si-unit-hint').textContent='';
 }
 
+let invDateFilter='all';
+
+function setInvDateFilter(f,btn){
+  invDateFilter=f;
+  document.querySelectorAll('.df-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const cw=document.getElementById('df-custom-wrap');
+  if(f==='custom')cw.classList.add('visible');
+  else cw.classList.remove('visible');
+  renderLog();
+}
+
+function getInvDateRange(){
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  switch(invDateFilter){
+    case 'thisweek':{
+      const day=today.getDay();
+      const mon=new Date(today);mon.setDate(today.getDate()-(day===0?6:day-1));
+      return{from:mon,to:new Date(today.getTime()+86400000)};
+    }
+    case 'thismonth':
+      return{from:new Date(now.getFullYear(),now.getMonth(),1),to:new Date(today.getTime()+86400000)};
+    case 'lastmonth':
+      return{from:new Date(now.getFullYear(),now.getMonth()-1,1),to:new Date(now.getFullYear(),now.getMonth(),1)};
+    case 'thisyear':
+      return{from:new Date(now.getFullYear(),0,1),to:new Date(today.getTime()+86400000)};
+    case 'custom':{
+      const from=document.getElementById('df-from').value;
+      const to=document.getElementById('df-to').value;
+      return{from:from?new Date(from):null,to:to?new Date(new Date(to).getTime()+86400000):null};
+    }
+    default:return{from:null,to:null};
+  }
+}
+
+function logEntryMatchesDate(entry){
+  if(invDateFilter==='all')return true;
+  const range=getInvDateRange();
+  if(!range.from&&!range.to)return true;
+  const dateStr=String(entry['Date']||'');
+  if(!dateStr)return true;
+  const d=new Date(dateStr);
+  if(isNaN(d.getTime()))return true;
+  if(range.from&&d<range.from)return false;
+  if(range.to&&d>=range.to)return false;
+  return true;
+}
+
 function setLogFilter(f,btn){
   logFilter=f;
   document.querySelectorAll('.log-filter').forEach(b=>b.classList.remove('active'));
@@ -445,8 +519,11 @@ function renderLog(){
   const filtered=stockLog.filter(l=>{
     const mf=logFilter==='all'||String(l['Type']).toUpperCase()===logFilter;
     const matF=!matFilter||String(l['Material'])===matFilter;
-    return mf&&matF;
+    const df=logEntryMatchesDate(l);
+    return mf&&matF&&df;
   });
+  const resEl=document.getElementById('df-results');
+  if(resEl)resEl.textContent=filtered.length+' movement'+(filtered.length!==1?'s':'')+(invDateFilter!=='all'?' in period':'');
   const tbody=document.getElementById('log-tbody');tbody.innerHTML='';
   if(!filtered.length){tbody.innerHTML='<tr><td colspan="8" class="empty-state">No movements found</td></tr>';return;}
   filtered.forEach(l=>{
