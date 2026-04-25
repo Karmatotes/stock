@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KarmaTotes — Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2EDE6;--surface:#FDFAF6;--bark:#2C1F14;--moss:#3B6B45;
+  --moss-light:#5A9467;--sand:#D4A96A;--cream:#EDE5D8;
+  --red:#C0392B;--red-soft:#FAE9E7;--green-soft:#EAF4EC;
+  --border:rgba(44,31,20,0.12);--shadow:0 2px 12px rgba(44,31,20,0.10);
+  --blue:#1565C0;--blue-soft:#E3F2FD;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--bark);min-height:100vh}
+.sync-bar{background:var(--bark);color:rgba(255,255,255,0.7);padding:3px 24px;font-size:11px;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px;height:24px;position:sticky;top:0;z-index:101}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#9CA3AF;flex-shrink:0;transition:background .3s}
+.sync-dot.syncing{background:#F59E0B;animation:pulse .8s infinite}
+.sync-dot.ok{background:#22C55E}.sync-dot.err{background:#EF4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-text{flex:1}.sync-time{opacity:.5;font-size:10px}
+header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:24px;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,0.25)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.logo span{font-size:12px;color:rgba(255,255,255,0.6);font-weight:400}
+.header-right{display:flex;align-items:center;gap:10px}
+.date-badge{background:rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:12px;font-family:'DM Mono',monospace}
+.btn-link{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-link:hover{background:rgba(255,255,255,0.25)}
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0}
+.nav-tab{padding:12px 18px;font-size:13px;font-weight:500;color:rgba(44,31,20,0.5);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.nav-tab:hover:not(.active){color:var(--bark)}
+.page{display:none;padding:24px}.page.active{display:block}
+.stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.stock-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:14px 16px;position:relative}
+.stock-mat-name{font-size:13px;font-weight:600;color:var(--bark);margin-bottom:2px}
+.stock-unit-label{font-size:10px;color:rgba(44,31,20,0.4);font-family:'DM Mono',monospace}
+.stock-val{font-size:28px;font-weight:700;line-height:1;margin:6px 0 2px}
+.stock-threshold{font-size:10px;color:rgba(44,31,20,0.4)}
+.stock-bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.stock-bar{height:100%;border-radius:2px;transition:width .3s}
+.stock-badge{position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
+.stock-card.ok .stock-val{color:var(--moss)}.stock-card.ok .stock-bar{background:var(--moss)}.stock-card.ok .stock-badge{background:var(--green-soft);color:var(--moss)}
+.stock-card.low .stock-val{color:#92400E}.stock-card.low .stock-bar{background:#F59E0B}.stock-card.low .stock-badge{background:#FEF3C7;color:#92400E}
+.stock-card.out .stock-val{color:var(--red)}.stock-card.out .stock-bar{background:var(--red)}.stock-card.out .stock-badge{background:var(--red-soft);color:var(--red)}
+.form-card{background:var(--surface);border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);max-width:600px;margin:0 auto}
+.form-card-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--blue-soft);border-radius:14px 14px 0 0}
+.form-card-icon{width:38px;height:38px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.form-card-title{font-size:16px;font-weight:700;color:var(--blue)}
+.form-card-sub{font-size:12px;color:rgba(21,101,192,0.6);margin-top:2px}
+.form-card-body{padding:24px}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:rgba(44,31,20,0.4);margin-bottom:12px;margin-top:20px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.section-label:first-child{margin-top:0}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.req{color:var(--red);margin-left:2px}
+.form-control{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--bark);outline:none;transition:border-color .15s}
+.form-control:focus{border-color:var(--blue);background:var(--surface)}
+.form-control::placeholder{color:rgba(44,31,20,0.3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-hint{font-size:11px;color:rgba(44,31,20,0.4);margin-top:4px}
+.total-display{margin-top:8px;padding:8px 12px;border-radius:7px;background:var(--blue-soft);color:var(--blue);font-size:13px;font-weight:600;display:none}
+.total-display.visible{display:block}
+.btn-submit{width:100%;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:20px}
+.btn-submit:hover{background:#1976D2}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.success-flash{display:none;text-align:center;padding:32px 24px}
+.success-flash.visible{display:block}
+.success-flash-icon{font-size:40px;margin-bottom:12px}
+.success-flash-title{font-size:18px;font-weight:700;color:var(--blue);margin-bottom:6px}
+.success-flash-sub{font-size:13px;color:rgba(44,31,20,0.5);margin-bottom:20px}
+.btn-new-entry{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.log-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.log-filter{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;color:var(--bark);transition:all .15s;font-family:'DM Sans',sans-serif}
+.log-filter.active,.log-filter:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.log-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+.log-table{width:100%;border-collapse:collapse;font-size:12px}
+.log-table th{background:var(--blue);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.log-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.log-table tr:last-child td{border-bottom:none}
+.log-table tr:hover td{background:var(--cream)}
+.type-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.type-in{background:var(--green-soft);color:var(--moss)}
+.type-out{background:#FEF3C7;color:#92400E}
+.alert-bar{padding:8px 24px;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px}
+.alert-bar.has-alerts{background:#7F1D1D;color:#FEE2E2}
+.alert-bar.clear{background:#1a3a2a;color:#A7F3D0}
+#loading-overlay{position:fixed;inset:0;background:rgba(44,31,20,0.75);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#loading-overlay.hidden{display:none}
+.loading-spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:#fff;font-size:15px;font-weight:600}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bark);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty-state{text-align:center;padding:30px;color:rgba(44,31,20,0.35);font-size:13px}
+</style>
+</head>
+<body>
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Loading Inventory...</div>
+</div>
+<div class="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span class="sync-text" id="sync-text">Connecting...</span>
+  <span class="sync-time" id="sync-time"></span>
+</div>
+<header>
+  <div class="logo">
+    <div class="logo-mark">&#128230;</div>
+    <div><h1>KarmaTotes</h1><span>Inventory &middot; Stock Tracker</span></div>
+  </div>
+  <div class="header-right">
+    <div class="date-badge" id="live-date"></div>
+    <a href="https://karmatotes.github.io/tracker/" target="_blank" class="btn-link">&#8862; Production</a>
+    <a href="https://karmatotes.github.io/orders/" target="_blank" class="btn-link">&#65291; Orders</a>
+  </div>
+</header>
+<div class="alert-bar clear" id="alert-bar">Loading stock levels...</div>
+<div class="nav-tabs">
+  <div class="nav-tab active" id="tab-stock"   onclick="switchTab('stock')">&#128202; Stock Levels</div>
+  <div class="nav-tab"        id="tab-stockin" onclick="switchTab('stockin')">&#65291; Stock In</div>
+  <div class="nav-tab"        id="tab-log"     onclick="switchTab('log')">&#128203; Movement Log</div>
+</div>
+
+<div class="page active" id="page-stock">
+  <div class="stock-grid" id="stock-grid">
+    <div class="empty-state">Loading materials...</div>
+  </div>
+</div>
+
+<div class="page" id="page-stockin">
+<div class="form-card" style="margin-top:0">
+  <div class="form-card-header">
+    <div class="form-card-icon">&#128229;</div>
+    <div>
+      <div class="form-card-title">Stock In &mdash; New Material Received</div>
+      <div class="form-card-sub">Enter supplier details &middot; Stock level updates automatically</div>
+    </div>
+  </div>
+  <div class="form-card-body" id="stockin-form-body">
+    <div class="section-label">Material Details</div>
+    <div class="form-group">
+      <label>Material <span class="req">*</span></label>
+      <select class="form-control" id="si-material" onchange="onMaterialChange()">
+        <option value="">Select material...</option>
+        <optgroup label="Fabric &amp; Sheet (Metres)">
+          <option value="Jute Fabric">Jute Fabric</option>
+          <option value="Cotton Canvas">Cotton Canvas</option>
+          <option value="Juco Fabric">Juco Fabric</option>
+          <option value="Kadhi Fabric">Kadhi Fabric</option>
+          <option value="Non-woven">Non-woven</option>
+          <option value="POV Sheet">POV Sheet</option>
+        </optgroup>
+        <optgroup label="Handles (Metres)">
+          <option value="Handles">Handles</option>
+        </optgroup>
+        <optgroup label="Hardware (Numbers)">
+          <option value="Zippers">Zippers</option>
+          <option value="Dog Hooks">Dog Hooks</option>
+          <option value="Buckles">Buckles</option>
+          <option value="D-Ring">D-Ring</option>
+          <option value="Snap Magnetic Button">Snap Magnetic Button</option>
+          <option value="Highlight">Highlight</option>
+          <option value="Reveat">Reveat</option>
+        </optgroup>
+        <optgroup label="Packaging (Numbers)">
+          <option value="Packaging Bags">Packaging Bags</option>
+          <option value="Packaging Boxes">Packaging Boxes</option>
+        </optgroup>
+      </select>
+    </div>
+    <div id="current-stock-display" style="display:none;margin-bottom:14px;padding:8px 12px;background:var(--cream);border-radius:7px;font-size:12px;color:var(--bark)"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Quantity Received <span class="req">*</span></label>
+        <input class="form-control" id="si-qty" type="number" placeholder="100" min="0.1" step="0.1" id="si-qty" oninput="updateTotal();updateQtyHint()">
+      </div>
+      <div class="form-group">
+        <label>Unit Cost &#8377; <span class="req">*</span></label>
+        <input class="form-control" id="si-unit-cost" type="number" placeholder="120" min="0" oninput="updateTotal()">
+        <div class="form-hint" id="si-unit-hint"></div>
+      </div>
+    </div>
+    <div class="total-display" id="si-total-display"></div>
+    <div class="section-label">Supplier Details</div>
+    <div class="form-group">
+      <label>Supplier Name <span class="req">*</span></label>
+      <input class="form-control" id="si-supplier" placeholder="e.g. Ravi Textiles">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Purchase Date</label>
+        <input class="form-control" id="si-date" type="date">
+      </div>
+      <div class="form-group">
+        <label>Invoice / Reference No.</label>
+        <input class="form-control" id="si-reference" placeholder="INV-2024-001">
+      </div>
+    </div>
+    <button class="btn-submit" id="si-submit" onclick="submitStockIn()">&#128229; Log Stock In</button>
+  </div>
+  <div class="success-flash" id="stockin-success">
+    <div class="success-flash-icon">&#9989;</div>
+    <div class="success-flash-title" id="si-success-title">Stock Added</div>
+    <div class="success-flash-sub" id="si-success-sub"></div>
+    <button class="btn-new-entry" onclick="resetStockIn()">&#65291; Log Another</button>
+  </div>
+</div>
+</div>
+
+<div class="page" id="page-log">
+  <div class="log-filters">
+    <button class="log-filter active" id="lf-all"  onclick="setLogFilter('all',this)">All</button>
+    <button class="log-filter"        id="lf-in"   onclick="setLogFilter('IN',this)">Stock In</button>
+    <button class="log-filter"        id="lf-out"  onclick="setLogFilter('OUT',this)">Stock Out (Orders)</button>
+    <select class="form-control" id="lf-material" onchange="renderLog()" style="width:auto;padding:6px 10px;font-size:12px">
+      <option value="">All Materials</option>
+      <option value="Jute Fabric">Jute Fabric</option>
+      <option value="Cotton Canvas">Cotton Canvas</option>
+      <option value="Juco Fabric">Juco Fabric</option>
+      <option value="Kadhi Fabric">Kadhi Fabric</option>
+      <option value="Non-woven">Non-woven</option>
+      <option value="POV Sheet">POV Sheet</option>
+      <option value="Handles">Handles</option>
+      <option value="Zippers">Zippers</option>
+      <option value="Dog Hooks">Dog Hooks</option>
+      <option value="Buckles">Buckles</option>
+      <option value="D-Ring">D-Ring</option>
+      <option value="Snap Magnetic Button">Snap Magnetic Button</option>
+      <option value="Highlight">Highlight</option>
+      <option value="Reveat">Reveat</option>
+      <option value="Packaging Bags">Packaging Bags</option>
+      <option value="Packaging Boxes">Packaging Boxes</option>
+    </select>
+  </div>
+  <div class="log-table-wrap">
+    <table class="log-table">
+      <thead>
+        <tr><th>Date</th><th>Type</th><th>Material</th><th>Qty</th><th>Order / Client</th><th>Supplier</th><th>Unit Cost</th><th>Total Cost</th></tr>
+      </thead>
+      <tbody id="log-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SHEET_URL="https://script.google.com/macros/s/AKfycbxpcfocezAqlwg37_SujPuDilIyXEeve5A8Niir1vohU3pz2sytBrSIjQyX6vLmoIPN/exec";
+let materials=[], stockLog=[], logFilter='all';
+
+function nowLabel(){const n=new Date();return n.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+', '+n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});}
+function fmtINR(n){return'\u20b9'+(Number(n)||0).toLocaleString('en-IN');}
+
+function setSyncStatus(state,msg){
+  document.getElementById('sync-dot').className='sync-dot '+state;
+  document.getElementById('sync-text').textContent=msg;
+  const t=document.getElementById('sync-time');
+  if(state==='ok')t.textContent='Last sync: '+nowLabel();else t.textContent='';
+}
+
+async function sheetCall(params){
+  setSyncStatus('syncing','Syncing...');
+  try{
+    const res=await fetch(SHEET_URL+'?'+new URLSearchParams(params).toString());
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    setSyncStatus('ok','Synced \u00b7 karmatotes@gmail.com');return data;
+  }catch(err){setSyncStatus('err','Sync failed.');console.error(err);return null;}
+}
+
+async function sheetPost(body){
+  setSyncStatus('syncing','Saving...');
+  try{
+    const res=await fetch(SHEET_URL,{method:'POST',body:JSON.stringify(body)});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    setSyncStatus('ok','Saved \u00b7 karmatotes@gmail.com');return data;
+  }catch(err){setSyncStatus('err','Save failed.');console.error(err);return null;}
+}
+
+async function initApp(){
+  document.getElementById('live-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const [matData,logData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'})]);
+  document.getElementById('loading-overlay').classList.add('hidden');
+  if(matData&&matData.materials)materials=matData.materials;
+  if(logData&&logData.stockLog)stockLog=logData.stockLog;
+  renderStockLevels();renderAlertBar();renderLog();
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+}
+
+function renderStockLevels(){
+  const grid=document.getElementById('stock-grid');
+  if(!materials.length){grid.innerHTML='<div class="empty-state">No materials found. Run initSheets in Apps Script first.</div>';return;}
+  grid.innerHTML='';
+  materials.forEach(m=>{
+    const stock=Number(m['Current Stock'])||0;
+    const threshold=Number(m['Low Stock Threshold'])||0;
+    const unit=String(m['Unit']||'');
+    const name=String(m['Material']||'');
+    const pct=threshold>0?Math.min(100,Math.round((stock/threshold)*50)):(stock>0?60:0);
+    const state=stock===0?'out':stock<=threshold?'low':'ok';
+    const label=state==='out'?'OUT':state==='low'?'LOW':'OK';
+    const card=document.createElement('div');
+    card.className='stock-card '+state;
+    card.innerHTML='<span class="stock-badge">'+label+'</span>'
+      +'<div class="stock-mat-name">'+name+'</div>'
+      +'<div class="stock-unit-label">'+unit+'</div>'
+      +'<div class="stock-val">'+(stock%1===0?stock:stock.toFixed(1))+'</div>'
+      +'<div class="stock-threshold">Min: '+threshold+' '+unit+'</div>'
+      +'<div class="stock-bar-wrap"><div class="stock-bar" style="width:'+Math.min(pct,100)+'%"></div></div>';
+    grid.appendChild(card);
+  });
+}
+
+function renderAlertBar(){
+  const bar=document.getElementById('alert-bar');
+  const lowItems=materials.filter(m=>{
+    const s=Number(m['Current Stock'])||0;
+    const t=Number(m['Low Stock Threshold'])||0;
+    return s<=t;
+  });
+  if(!lowItems.length){bar.className='alert-bar clear';bar.innerHTML='&#9989; All stock levels healthy. No alerts.';}
+  else{
+    bar.className='alert-bar has-alerts';
+    const outItems=lowItems.filter(m=>Number(m['Current Stock'])===0);
+    const warnItems=lowItems.filter(m=>Number(m['Current Stock'])>0);
+    let msg='';
+    if(outItems.length)msg+='&#128308; OUT OF STOCK: '+outItems.map(m=>m['Material']).join(', ')+'&nbsp;&nbsp;';
+    if(warnItems.length)msg+='&#9888;&#65039; LOW: '+warnItems.map(m=>m['Material']+' ('+m['Current Stock']+' '+m['Unit']+')').join(', ');
+    bar.innerHTML=msg;
+  }
+}
+
+function onMaterialChange(){
+  const matName=document.getElementById('si-material').value;
+  const mat=materials.find(m=>m['Material']===matName);
+  const display=document.getElementById('current-stock-display');
+  const hint=document.getElementById('si-unit-hint');
+  if(mat){
+    const stock=Number(mat['Current Stock'])||0;
+    const unit=mat['Unit']||'';
+    display.style.display='block';
+    display.textContent='Current stock: '+stock+' '+unit;
+    const lastEntry=stockLog.find(l=>String(l['Material'])===matName&&String(l['Type']).toUpperCase()==='IN');
+    if(lastEntry&&lastEntry['Unit Cost']){
+      hint.textContent='Last purchase: '+fmtINR(lastEntry['Unit Cost'])+' per '+unit;
+      document.getElementById('si-unit-cost').value=Number(lastEntry['Unit Cost'])||'';
+    }else{
+      const isMetres=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Handles'].includes(matName);
+    hint.textContent='Unit: '+(isMetres?'Metres':'Nos (numbers)');
+    }
+  }else{display.style.display='none';hint.textContent='';}
+  updateTotal();
+}
+
+const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Handles'];
+function getMaterialUnit(name){return METRES_MATERIALS.includes(name)?'m':'nos';}
+
+function updateTotal(){
+  const qty=Number(document.getElementById('si-qty').value)||0;
+  const cost=Number(document.getElementById('si-unit-cost').value)||0;
+  const matName=document.getElementById('si-material').value;
+  const unit=getMaterialUnit(matName);
+  const el=document.getElementById('si-total-display');
+  if(qty&&cost){el.classList.add('visible');el.textContent='Total: '+fmtINR(qty*cost)+' ('+qty+' '+unit+' x '+fmtINR(cost)+'/'+unit+')';}
+  else el.classList.remove('visible');
+}
+
+function updateQtyHint(){
+  const matName=document.getElementById('si-material').value;
+  if(!matName)return;
+  const isMetres=METRES_MATERIALS.includes(matName);
+  document.getElementById('si-qty').step=isMetres?'0.1':'1';
+  document.getElementById('si-qty').placeholder=isMetres?'e.g. 50':'e.g. 100';
+}
+
+async function submitStockIn(){
+  const material=document.getElementById('si-material').value;
+  if(!material){showToast('Select a material');return;}
+  const qty=Number(document.getElementById('si-qty').value)||0;
+  if(!qty){showToast('Enter quantity');return;}
+  const unitCost=Number(document.getElementById('si-unit-cost').value)||0;
+  if(!unitCost){showToast('Enter unit cost');return;}
+  const supplier=document.getElementById('si-supplier').value.trim();
+  if(!supplier){showToast('Enter supplier name');return;}
+  const mat=materials.find(m=>m['Material']===material);
+  const unit=mat?mat['Unit']:'';
+  const btn=document.getElementById('si-submit');
+  btn.disabled=true;btn.textContent='Saving...';
+  const result=await sheetPost({
+    action:'stockIn',material,qty,unitCost,unit,supplier,
+    reference:document.getElementById('si-reference').value||'',
+    date:document.getElementById('si-date').value||''
+  });
+  if(result&&result.success){
+    const matData=await sheetCall({action:'getMaterials'});
+    const logData=await sheetCall({action:'getStockLog'});
+    if(matData&&matData.materials)materials=matData.materials;
+    if(logData&&logData.stockLog)stockLog=logData.stockLog;
+    document.getElementById('stockin-form-body').style.display='none';
+    const ss=document.getElementById('stockin-success');ss.classList.add('visible');
+    document.getElementById('si-success-title').textContent=qty+' '+unit+' of '+material+' added';
+    document.getElementById('si-success-sub').textContent='From '+supplier+' \u00b7 '+fmtINR(qty*unitCost)+' total \u00b7 Stock updated';
+    showToast('Stock updated: '+material+' +'+qty+' '+unit);
+    renderStockLevels();renderAlertBar();
+  }else{
+    showToast('Save failed. Try again.');
+    btn.disabled=false;btn.textContent='Log Stock In';
+  }
+}
+
+function resetStockIn(){
+  document.getElementById('stockin-form-body').style.display='block';
+  document.getElementById('stockin-success').classList.remove('visible');
+  document.getElementById('si-submit').disabled=false;
+  document.getElementById('si-submit').textContent='Log Stock In';
+  ['si-material','si-qty','si-unit-cost','si-supplier','si-reference','si-date'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('current-stock-display').style.display='none';
+  document.getElementById('si-total-display').classList.remove('visible');
+  document.getElementById('si-unit-hint').textContent='';
+}
+
+function setLogFilter(f,btn){
+  logFilter=f;
+  document.querySelectorAll('.log-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderLog();
+}
+
+function renderLog(){
+  const matFilter=document.getElementById('lf-material').value;
+  const filtered=stockLog.filter(l=>{
+    const mf=logFilter==='all'||String(l['Type']).toUpperCase()===logFilter;
+    const matF=!matFilter||String(l['Material'])===matFilter;
+    return mf&&matF;
+  });
+  const tbody=document.getElementById('log-tbody');tbody.innerHTML='';
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="8" class="empty-state">No movements found</td></tr>';return;}
+  filtered.forEach(l=>{
+    const type=String(l['Type']).toUpperCase();
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td style="font-family:\'DM Mono\',monospace;font-size:11px;white-space:nowrap">'+(l['Date']||'&mdash;')+'</td>'
+      +'<td><span class="type-badge '+(type==='IN'?'type-in':'type-out')+'">'+(type==='IN'?'IN':'OUT')+'</span></td>'
+      +'<td style="font-weight:500">'+(l['Material']||'&mdash;')+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-weight:600">'+(l['Qty']||0)+'</td>'
+      +'<td style="font-size:11px">'+(l['Order ID']?'#'+l['Order ID']+' &middot; '+(l['Client']||''):l['Supplier']||'&mdash;')+'</td>'
+      +'<td style="font-size:11px;color:rgba(44,31,20,0.6)">'+(l['Supplier']||'&mdash;')+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-size:11px">'+(l['Unit Cost']?fmtINR(l['Unit Cost']):'&mdash;')+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:600">'+(l['Total Cost']?fmtINR(l['Total Cost']):'&mdash;')+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+initApp();
+</script>
+</body>
+</html>
