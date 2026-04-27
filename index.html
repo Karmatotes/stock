@@ -97,6 +97,18 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bark);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .empty-state{text-align:center;padding:30px;color:rgba(44,31,20,0.35);font-size:13px}
+.reg-category{background:var(--surface);border-radius:12px;border:1px solid var(--border);margin-bottom:14px;overflow:hidden}
+.reg-cat-header{padding:12px 16px;background:#F3E8FF;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid var(--border)}
+.reg-cat-title{font-size:13px;font-weight:700;color:#6B21A8}
+.reg-cat-count{font-size:11px;color:rgba(107,33,168,0.6);background:rgba(107,33,168,0.1);padding:2px 8px;border-radius:10px}
+.reg-table{width:100%;border-collapse:collapse;font-size:12px}
+.reg-table th{background:#6B21A8;color:#fff;padding:8px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.reg-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.reg-table tr:last-child td{border-bottom:none}
+.reg-table tr:hover td{background:var(--cream)}
+.reg-bal{font-weight:700;font-family:"DM Mono",monospace}
+.reg-bal.ok{color:var(--moss)}.reg-bal.low{color:#92400E}.reg-bal.out{color:var(--red)}
+.modal-overlay{display:flex}
 .btn-refresh{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .2s}
 .btn-refresh:hover{background:rgba(255,255,255,0.25)}
 .btn-refresh.spinning span{display:inline-block;animation:spin .6s linear infinite}
@@ -139,7 +151,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 <div class="nav-tabs">
   <div class="nav-tab active" id="tab-stock"   onclick="switchTab('stock')">&#128202; Stock Levels</div>
   <div class="nav-tab"        id="tab-stockin" onclick="switchTab('stockin')">&#65291; Stock In</div>
-  <div class="nav-tab"        id="tab-log"     onclick="switchTab('log')">&#128203; Movement Log</div>
+  <div class="nav-tab"        id="tab-log"      onclick="switchTab('log')">&#128203; Movement Log</div>
+  <div class="nav-tab"        id="tab-register" onclick="switchTab('register')">&#128220; Register</div>
 </div>
 
 <div class="page active" id="page-stock">
@@ -310,6 +323,96 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 
 <div class="toast" id="toast"></div>
 
+<!-- REGISTER PAGE -->
+<div class="page" id="page-register">
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <input class="form-control" id="reg-search" placeholder="&#128269; Search variant, color, pattern..." oninput="renderRegister()" style="max-width:260px">
+    <select class="form-control" id="reg-cat-filter" onchange="renderRegister()" style="width:auto">
+      <option value="">All Categories</option>
+      <option value="Jute Fabric">Jute Fabric</option>
+      <option value="Cotton Canvas">Cotton Canvas</option>
+      <option value="Juco Fabric">Juco Fabric</option>
+      <option value="Kadhi Fabric">Kadhi Fabric</option>
+      <option value="Lining">Lining</option>
+      <option value="Kalamkari / Designer">Kalamkari / Designer</option>
+      <option value="Zippers">Zippers</option>
+      <option value="Lace">Lace</option>
+      <option value="Webbing">Webbing</option>
+      <option value="Handles">Handles</option>
+      <option value="Threads">Threads</option>
+      <option value="Hardware">Hardware</option>
+      <option value="Machine Items">Machine Items</option>
+    </select>
+    <button class="btn-submit" onclick="openRegisterStockIn()" style="width:auto;margin:0;padding:8px 16px;font-size:13px">&#43; Stock In</button>
+  </div>
+  <div id="register-content"></div>
+</div>
+
+<!-- REGISTER STOCK IN MODAL -->
+<div class="modal-overlay" id="reg-modal" style="display:none;position:fixed;inset:0;background:rgba(44,31,20,0.6);z-index:300;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:14px;padding:0;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#F3E8FF;border-radius:14px 14px 0 0">
+      <div style="font-size:15px;font-weight:700;color:#6B21A8">&#128220; Register Stock In</div>
+      <button onclick="closeRegModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:rgba(44,31,20,0.4)">&#10005;</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:12px" id="reg-form-body">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Category <span class="req">*</span></label>
+        <select class="form-control" id="rsi-category" onchange="onRegCatChange()">
+          <option value="">Select category...</option>
+          <option value="Jute Fabric">Jute Fabric</option>
+          <option value="Cotton Canvas">Cotton Canvas</option>
+          <option value="Juco Fabric">Juco Fabric</option>
+          <option value="Kadhi Fabric">Kadhi Fabric</option>
+          <option value="Lining">Lining</option>
+          <option value="Kalamkari / Designer">Kalamkari / Designer</option>
+          <option value="Zippers">Zippers</option>
+          <option value="Lace">Lace</option>
+          <option value="Webbing">Webbing</option>
+          <option value="Handles">Handles</option>
+          <option value="Threads">Threads</option>
+          <option value="Hardware">Hardware</option>
+          <option value="Machine Items">Machine Items</option>
+        </select>
+      </div>
+      <!-- Dynamic sub-fields injected here -->
+      <div id="rsi-subfields"></div>
+      <div class="form-row" id="rsi-qty-section" style="display:none">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Quantity <span class="req">*</span></label>
+          <input class="form-control" id="rsi-qty" type="number" min="0" step="0.1" placeholder="0">
+          <div style="font-size:11px;color:rgba(44,31,20,0.4);margin-top:3px" id="rsi-unit-label"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Rate &#8377; per unit</label>
+          <input class="form-control" id="rsi-rate" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0" id="rsi-supplier-section" style="display:none">
+        <label>Supplier</label>
+        <input class="form-control" id="rsi-supplier" placeholder="e.g. Ravi Textiles">
+      </div>
+      <div class="form-row" id="rsi-date-section" style="display:none">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Purchase Date</label>
+          <input class="form-control" id="rsi-date" type="date">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Notes</label>
+          <input class="form-control" id="rsi-notes" placeholder="Optional notes">
+        </div>
+      </div>
+      <button class="btn-submit" id="rsi-submit" onclick="submitRegisterStockIn()" style="margin:0">&#128229; Log Stock In to Register</button>
+    </div>
+    <div id="reg-success" style="display:none;text-align:center;padding:30px">
+      <div style="font-size:36px;margin-bottom:10px">&#9989;</div>
+      <div style="font-size:16px;font-weight:700;color:#6B21A8;margin-bottom:6px" id="reg-success-title">Stock Added</div>
+      <div style="font-size:12px;color:rgba(44,31,20,0.5);margin-bottom:16px" id="reg-success-sub"></div>
+      <button onclick="resetRegForm()" style="background:#6B21A8;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#43; Log Another</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SHEET_URL="https://script.google.com/macros/s/AKfycbxpcfocezAqlwg37_SujPuDilIyXEeve5A8Niir1vohU3pz2sytBrSIjQyX6vLmoIPN/exec";
 let materials=[], stockLog=[], logFilter='all';
@@ -348,7 +451,7 @@ async function refreshData(){
   const btn=document.getElementById('btn-refresh');
   if(btn){btn.classList.add('spinning');btn.disabled=true;}
   try{
-    const [matData,logData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'})]);
+    const [matData,logData,regData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'}),sheetCall({action:'getRegister'})]);
     if(matData&&matData.materials)materials=matData.materials;
     if(logData&&logData.stockLog)stockLog=logData.stockLog;
     renderStockLevels();renderAlertBar();renderLog();
@@ -358,21 +461,369 @@ async function refreshData(){
   }
 }
 
-async function initApp(){
-  document.getElementById('live-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  const [matData,logData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'})]);
-  document.getElementById('loading-overlay').classList.add('hidden');
-  if(matData&&matData.materials)materials=matData.materials;
-  if(logData&&logData.stockLog)stockLog=logData.stockLog;
-  renderStockLevels();renderAlertBar();renderLog();
-}
 
+// ── MATERIAL REGISTER CONFIG ──────────────────────────────
+const REG_CONFIG = {
+  'Jute Fabric': {
+    unit:'Metres', fields:['variant','colorPattern','gsm'],
+    variants:['Natural (14/15 GSM)','Half-White','Oxford Jute','Colored','Printed'],
+    colorsByVariant:{
+      'Colored':['Navy Blue','Black Laminated','Brown','Mustard','Maroon','Pink','Red','Parrot Green','Green','Teal Blue','Orange','Purple','Yellow','Royal Blue','Light Green'],
+      'Printed':['Viala Jute Maroon','Viala Jute Pink','Butterfly Jute','Flower Print Jute','Gold & Black Jute','Red Flower Natural','Natural & Black Blocks','Half White & Pink Flowers','Half White & Elephant','Ajrak Hearts','Ajrak Waves','Orange Wareli','Brown Checks Jute']
+    }
+  },
+  'Cotton Canvas': {
+    unit:'Metres', fields:['colorPattern','gsm'],
+    colors:['Purple','Dark Grey','Royal Blue','Black','Navy Blue','Yellow','Red','Pink','Orange','Dark Green','Sky Blue','Marine Blue','Mustard','Honey','Pista Green','Blue','Cream','White','Rani Pink','Mehendi','Light Blue','Light Grey','Maroon','Dark Brown','Chocolate Brown','Teal Blue','Bottle Green']
+  },
+  'Juco Fabric': {
+    unit:'Metres', fields:['variant'],
+    variants:['Natural','Laminated']
+  },
+  'Kadhi Fabric': {
+    unit:'Metres', fields:['variant','gsm'],
+    variants:['Export 150 GSM','Kora 140 GSM','Fine 120 GSM','90 GSM']
+  },
+  'Lining': {
+    unit:'Metres', fields:['colorPattern','variant'],
+    variants:['Poplin','Plain'],
+    colors:['Red','Navy Blue','Light Green','Dark Green','Mustard','Pink','White','Royal Blue','Black','Cream','Yellow','Grey','Khaki','Sky Blue','Teal Blue','Dark Pink','Natural','Pista']
+  },
+  'Kalamkari / Designer': {
+    unit:'Metres', fields:['colorPattern'],
+    patterns:['Pochampally','Ajrak Hearts','Ajrak Waves','Cows Kalamkari Blue','Cows Kalamkari Black','Orange Flower Kalamkari','Kantha Work Pink','Blue with Flowers','Hand Print','Purple White Flowers','Grey Maroon Flowers','Black & White Curtains','Mustard with Mandala','Blue Flamingo','Orange Wareli']
+  },
+  'Zippers': {
+    unit:'Metres', fields:['colorPattern','size','type'],
+    colors:['Black','White','Cream','Juco','Dark Juco','Light Green','Green','Orange','Navy Blue','Light Cream','Red','Purple','Blue','Olive','Bottle Green'],
+    sizes:['No.3','No.5','No.8'],
+    types:['Standard','Pocket Zip','Trainer Zip']
+  },
+  'Lace': {
+    unit:'Metres', fields:['colorPattern','size','type'],
+    colors:['Cream','White','Baby Pink','Light Blue','Dark Blue','Blue Zari','Black with Juco','Pink with Juco','Light Green with Juco','Light Blue with Juco','Black Zari','Green Zari','Maroon Zari'],
+    sizes:['1 inch','1.5 inch'],
+    types:['Plain','Zari','With Juco']
+  },
+  'Webbing': {
+    unit:'Bundles', fields:['colorPattern','size','type'],
+    colors:['Juco','Cream','Orange','Green','Yellow','Mustard','Bottle Green','Parrot Green','Purple','Black','Light Blue','Brick','Coffee','Pink','Red','Maroon','Grey','White','Dark Blue','Navy Blue','Grape','Teal','Zig-Zag','Multicolor','Black & Juco'],
+    sizes:['1 inch','1.5 inch','2 inch'],
+    types:['Plain','Designer','Zig-Zag']
+  },
+  'Handles': {
+    unit:'Metres', fields:['type','colorPattern'],
+    types:['Cotton','Jute','Rope','Leather'],
+    colors:['Natural','Black','Brown','Cream','Navy Blue','Tan','Beige']
+  },
+  'Threads': {
+    unit:'Nos (boxes)', fields:['colorPattern'],
+    colors:['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
+  },
+  'Hardware': {
+    unit:'Nos', fields:['variant','size','finish'],
+    variants:['D-Ring','Dog Hook','Adjuster / Buckle','Rectangle Ring','Square Ring','Circle Ring','Triangle Ring','Runners','Eye Lets','Snap Button','Bag Bottom Button','Press Button','Bobbins','Bobbin Cases'],
+    sizes:['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)','Tiny (1 cm)','No.3','No.5','No.8','Big (Flat)'],
+    finishes:['Steel','Antique','Plastic']
+  },
+  'Machine Items': {
+    unit:'Nos', fields:['variant'],
+    variants:['Needles No.21','Needles No.23','Thread Cutters','Seam Rippers','Marking Chalk','Bead Pins','Black Clips','Water Tube','Teflon Shoe','Scales','Scissors','Bobbins','Bobbin Cases']
+  }
+};
+
+let registerData = [];
+
+// ── REGISTER: SWITCH TAB ─────────────────────────────────
 function switchTab(tab){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='register'){loadRegister();}
 }
+
+async function loadRegister(){
+  const data=await sheetCall({action:'getRegister'});
+  if(data&&data.register)registerData=data.register;
+  renderRegister();
+}
+
+// ── REGISTER: RENDER ─────────────────────────────────────
+function renderRegister(){
+  const search=(document.getElementById('reg-search').value||'').toLowerCase();
+  const catFilter=document.getElementById('reg-cat-filter').value;
+  const content=document.getElementById('register-content');
+
+  // Calculate balances per unique item key
+  const balanceMap={};
+  const itemMeta={};
+  registerData.forEach(r=>{
+    const key=[r['Category'],r['Variant']||'',r['Color/Pattern']||'',r['Type']||'',r['Size']||'',r['Finish']||'',r['GSM']||''].join('|');
+    if(!balanceMap[key])balanceMap[key]=0;
+    if(!itemMeta[key])itemMeta[key]={
+      category:r['Category'],variant:r['Variant']||'',colorPattern:r['Color/Pattern']||'',
+      type:r['Type']||'',size:r['Size']||'',finish:r['Finish']||'',gsm:r['GSM']||'',unit:r['Unit']||''
+    };
+    if(String(r['Type (IN/OUT)']).toUpperCase()==='IN')balanceMap[key]+=Number(r['Qty'])||0;
+    else balanceMap[key]-=Number(r['Qty'])||0;
+  });
+
+  // Group by category
+  const categories={};
+  Object.keys(balanceMap).forEach(key=>{
+    const m=itemMeta[key];
+    if(catFilter&&m.category!==catFilter)return;
+    const label=[m.variant,m.colorPattern,m.type,m.size,m.finish,m.gsm].filter(Boolean).join(' — ');
+    if(search&&!m.category.toLowerCase().includes(search)&&!label.toLowerCase().includes(search))return;
+    if(!categories[m.category])categories[m.category]=[];
+    categories[m.category].push({key,meta:m,label,balance:balanceMap[key]});
+  });
+
+  if(!Object.keys(categories).length){
+    content.innerHTML='<div class="empty-state">No register entries yet. Click + Stock In to add.</div>';
+    return;
+  }
+
+  let html='';
+  Object.keys(categories).sort().forEach(cat=>{
+    const items=categories[cat];
+    html+='<div class="reg-category">';
+    html+='<div class="reg-cat-header"><span class="reg-cat-title">'+cat+'</span><span class="reg-cat-count">'+items.length+' variant'+(items.length!==1?'s':'')+'</span></div>';
+    html+='<div style="overflow-x:auto"><table class="reg-table"><thead><tr>';
+    html+='<th>Variant / Color / Pattern</th><th>Type</th><th>Size</th><th>Finish</th><th>GSM</th><th>Unit</th><th>Balance</th>';
+    html+='</tr></thead><tbody>';
+    items.forEach(item=>{
+      const bal=item.balance;
+      const balClass=bal<=0?'out':bal<=10?'low':'ok';
+      const m=item.meta;
+      html+='<tr>';
+      html+='<td><strong>'+(m.variant||'—')+'</strong>'+(m.colorPattern?' <span style="color:rgba(44,31,20,0.5)">'+m.colorPattern+'</span>':'')+'</td>';
+      html+='<td style="font-size:11px">'+(m.type||'—')+'</td>';
+      html+='<td style="font-size:11px">'+(m.size||'—')+'</td>';
+      html+='<td style="font-size:11px">'+(m.finish||'—')+'</td>';
+      html+='<td style="font-size:11px;font-family:'DM Mono',monospace">'+(m.gsm?m.gsm+' GSM':'—')+'</td>';
+      html+='<td style="font-size:11px;color:rgba(44,31,20,0.4)">'+(m.unit||'')+'</td>';
+      html+='<td><span class="reg-bal '+balClass+'">'+(bal%1===0?bal:bal.toFixed(1))+'</span></td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table></div></div>';
+  });
+  content.innerHTML=html;
+}
+
+// ── REGISTER MODAL ────────────────────────────────────────
+function openRegisterStockIn(){
+  document.getElementById('reg-modal').style.display='flex';
+  document.getElementById('reg-form-body').style.display='flex';
+  document.getElementById('reg-success').style.display='none';
+  document.getElementById('rsi-subfields').innerHTML='';
+  document.getElementById('rsi-qty-section').style.display='none';
+  document.getElementById('rsi-supplier-section').style.display='none';
+  document.getElementById('rsi-date-section').style.display='none';
+  document.getElementById('rsi-category').value='';
+}
+
+function closeRegModal(){
+  document.getElementById('reg-modal').style.display='none';
+}
+
+function onRegCatChange(){
+  const cat=document.getElementById('rsi-category').value;
+  if(!cat){document.getElementById('rsi-subfields').innerHTML='';return;}
+  const cfg=REG_CONFIG[cat];
+  if(!cfg)return;
+
+  let html='';
+  // Variant field
+  if(cfg.variants){
+    html+='<div class="form-group" style="margin-bottom:0"><label>Variant</label>';
+    html+='<select class="form-control" id="rsi-variant" onchange="onRegVariantChange()">';
+    html+='<option value="">Select variant...</option>';
+    cfg.variants.forEach(v=>html+='<option value="'+v+'">'+v+'</option>');
+    html+='<option value="__other__">Other (type below)</option>';
+    html+='</select>';
+    html+='<input class="form-control" id="rsi-variant-custom" placeholder="Enter variant name" style="display:none;margin-top:6px">';
+    html+='</div>';
+  }
+  // Color field
+  const colors=cfg.colors||cfg.patterns||[];
+  if(colors.length){
+    const label=cfg.patterns?'Pattern / Name':'Color';
+    html+='<div class="form-group" style="margin-bottom:0" id="rsi-color-wrap"><label>'+label+'</label>';
+    html+='<select class="form-control" id="rsi-color" onchange="onRegColorChange()">';
+    html+='<option value="">Select '+label.toLowerCase()+'...</option>';
+    colors.forEach(c=>html+='<option value="'+c+'">'+c+'</option>');
+    html+='<option value="__other__">Other (type below)</option>';
+    html+='</select>';
+    html+='<input class="form-control" id="rsi-color-custom" placeholder="Enter color / pattern name" style="display:none;margin-top:6px">';
+    html+='</div>';
+  }
+  // Size field
+  if(cfg.sizes){
+    html+='<div class="form-group" style="margin-bottom:0"><label>Size / Number</label>';
+    html+='<select class="form-control" id="rsi-size">';
+    html+='<option value="">Select size...</option>';
+    cfg.sizes.forEach(s=>html+='<option value="'+s+'">'+s+'</option>');
+    html+='<option value="__other__">Other</option>';
+    html+='</select></div>';
+  }
+  // Finish field
+  if(cfg.finishes){
+    html+='<div class="form-group" style="margin-bottom:0"><label>Finish</label>';
+    html+='<select class="form-control" id="rsi-finish">';
+    html+='<option value="">Select finish...</option>';
+    cfg.finishes.forEach(f=>html+='<option value="'+f+'">'+f+'</option>');
+    html+='</select></div>';
+  }
+  // Type field (for Zippers, Lace, Webbing, Handles)
+  if(cfg.types&&!cfg.finishes){
+    html+='<div class="form-group" style="margin-bottom:0"><label>Type</label>';
+    html+='<select class="form-control" id="rsi-type">';
+    html+='<option value="">Select type...</option>';
+    cfg.types.forEach(t=>html+='<option value="'+t+'">'+t+'</option>');
+    html+='<option value="__other__">Other</option>';
+    html+='</select></div>';
+  }
+  // GSM field
+  if(cat==='Cotton Canvas'||cat==='Kadhi Fabric'||(cat==='Jute Fabric')){
+    const gsmOpts=cat==='Cotton Canvas'?['225','300','310','340','360','390','400','420','490','570','600','656']:
+                  cat==='Kadhi Fabric'?['90','120','135','150']:
+                  ['12/12','13/13','14/15'];
+    html+='<div class="form-group" style="margin-bottom:0" id="rsi-gsm-wrap"><label>GSM</label>';
+    html+='<select class="form-control" id="rsi-gsm">';
+    html+='<option value="">Select GSM...</option>';
+    gsmOpts.forEach(g=>html+='<option value="'+g+'">'+g+' GSM</option>');
+    html+='<option value="__other__">Other (custom)</option>';
+    html+='</select>';
+    html+='<input class="form-control" id="rsi-gsm-custom" placeholder="Enter GSM" style="display:none;margin-top:6px">';
+    html+='</div>';
+  }
+
+  document.getElementById('rsi-subfields').innerHTML=html;
+  document.getElementById('rsi-qty-section').style.display='grid';
+  document.getElementById('rsi-supplier-section').style.display='block';
+  document.getElementById('rsi-date-section').style.display='grid';
+  document.getElementById('rsi-unit-label').textContent='Unit: '+cfg.unit;
+
+  // Attach GSM custom toggle
+  const gsmSel=document.getElementById('rsi-gsm');
+  if(gsmSel)gsmSel.addEventListener('change',function(){
+    const custom=document.getElementById('rsi-gsm-custom');
+    if(custom)custom.style.display=this.value==='__other__'?'block':'none';
+  });
+}
+
+function onRegVariantChange(){
+  const sel=document.getElementById('rsi-variant');
+  const custom=document.getElementById('rsi-variant-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='__other__'?'block':'none';
+
+  // For Jute — show color or pattern based on variant
+  const cat=document.getElementById('rsi-category').value;
+  if(cat!=='Jute Fabric')return;
+  const cfg=REG_CONFIG[cat];
+  const colorWrap=document.getElementById('rsi-color-wrap');
+  if(!colorWrap)return;
+  const variant=sel.value;
+  const colorSel=document.getElementById('rsi-color');
+  if(!colorSel)return;
+  const opts=cfg.colorsByVariant?cfg.colorsByVariant[variant]:null;
+  if(opts){
+    colorWrap.style.display='block';
+    colorSel.innerHTML='<option value="">Select '+(variant==='Printed'?'pattern':'color')+'...</option>';
+    opts.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;colorSel.appendChild(o);});
+    const other=document.createElement('option');other.value='__other__';other.textContent='Other (type below)';colorSel.appendChild(other);
+  }else{
+    colorWrap.style.display='none';
+  }
+}
+
+function onRegColorChange(){
+  const sel=document.getElementById('rsi-color');
+  const custom=document.getElementById('rsi-color-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='__other__'?'block':'none';
+}
+
+function getRegFieldValue(id,customId){
+  const sel=document.getElementById(id);
+  if(!sel)return'';
+  if(sel.value==='__other__'){
+    const custom=document.getElementById(customId);
+    return custom?custom.value.trim():'';
+  }
+  return sel.value;
+}
+
+async function submitRegisterStockIn(){
+  const cat=document.getElementById('rsi-category').value;
+  if(!cat){showToast('Select a category');return;}
+  const qty=Number(document.getElementById('rsi-qty').value)||0;
+  if(!qty){showToast('Enter quantity');return;}
+
+  const btn=document.getElementById('rsi-submit');
+  btn.disabled=true;btn.textContent='Saving...';
+
+  const cfg=REG_CONFIG[cat]||{};
+  const variant=getRegFieldValue('rsi-variant','rsi-variant-custom');
+  const colorPattern=getRegFieldValue('rsi-color','rsi-color-custom');
+  const size=document.getElementById('rsi-size')?document.getElementById('rsi-size').value:'';
+  const finish=document.getElementById('rsi-finish')?document.getElementById('rsi-finish').value:'';
+  const type=document.getElementById('rsi-type')?document.getElementById('rsi-type').value:'';
+  const gsm=getRegFieldValue('rsi-gsm','rsi-gsm-custom');
+  const rate=Number(document.getElementById('rsi-rate').value)||0;
+  const supplier=document.getElementById('rsi-supplier').value||'';
+  const date=document.getElementById('rsi-date').value||'';
+  const notes=document.getElementById('rsi-notes').value||'';
+
+  const result=await sheetPost({
+    action:'registerStockIn',
+    category:cat,variant,colorPattern,type,size,finish,gsm,
+    unit:cfg.unit||'Nos',qty,rate,supplier,date,notes
+  });
+
+  if(result&&result.success){
+    const data=await sheetCall({action:'getRegister'});
+    if(data&&data.register)registerData=data.register;
+    renderRegister();
+    document.getElementById('reg-form-body').style.display='none';
+    document.getElementById('reg-success').style.display='block';
+    document.getElementById('reg-success-title').textContent=qty+' '+(cfg.unit||'nos')+' of '+cat+' added';
+    document.getElementById('reg-success-sub').textContent=(colorPattern||variant||'')+' · Saved to Material Register';
+    showToast('Register updated');
+  }else{
+    showToast('Save failed. Try again.');
+    btn.disabled=false;btn.textContent='Log Stock In to Register';
+  }
+}
+
+function resetRegForm(){
+  document.getElementById('reg-form-body').style.display='flex';
+  document.getElementById('reg-success').style.display='none';
+  document.getElementById('rsi-submit').disabled=false;
+  document.getElementById('rsi-submit').textContent='Log Stock In to Register';
+  document.getElementById('rsi-category').value='';
+  document.getElementById('rsi-subfields').innerHTML='';
+  document.getElementById('rsi-qty-section').style.display='none';
+  document.getElementById('rsi-supplier-section').style.display='none';
+  document.getElementById('rsi-date-section').style.display='none';
+  ['rsi-qty','rsi-rate','rsi-supplier','rsi-date','rsi-notes'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+}
+async function initApp(){
+  document.getElementById('live-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const [matData,logData,regData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'}),sheetCall({action:'getRegister'})]);
+  document.getElementById('loading-overlay').classList.add('hidden');
+  if(matData&&matData.materials)materials=matData.materials;
+  if(logData&&logData.stockLog)stockLog=logData.stockLog;
+  if(regData&&regData.register)registerData=regData.register;
+  renderStockLevels();renderAlertBar();renderLog();
+}
+
+// switchTab handled by register block above
 
 function renderStockLevels(){
   const grid=document.getElementById('stock-grid');
