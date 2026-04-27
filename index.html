@@ -860,7 +860,7 @@ const NON_FABRIC_CONFIG = {
 function buildSubField(labelText, id, options, withOther=true){
   let html='<div class="form-group" style="margin-bottom:8px">';
   html+='<label style="display:block;font-size:11px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px">'+labelText+'</label>';
-  html+='<select class="form-control" id="'+id+'" onchange="checkNonFabricOther(''+id+'')" style="margin-bottom:0">';
+  html+='<select class="form-control" id="'+id+'" onchange="checkNonFabricOther(this.id)" style="margin-bottom:0">';
   html+='<option value="">Select '+labelText.toLowerCase()+'...</option>';
   options.forEach(o=>html+='<option value="'+o+'">'+o+'</option>');
   if(withOther)html+='<option value="Other">Other (type below)</option>';
@@ -870,7 +870,8 @@ function buildSubField(labelText, id, options, withOther=true){
   return html;
 }
 
-function checkNonFabricOther(selectId){
+function checkNonFabricOther(el){
+  const selectId=typeof el==='string'?el:el.id;
   const sel=document.getElementById(selectId);
   const custom=document.getElementById(selectId+'-custom');
   if(!sel||!custom)return;
