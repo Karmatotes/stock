@@ -242,7 +242,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="form-group" style="margin-bottom:0">
           <label>Variation</label>
-          <select class="form-control" id="si-variation">
+          <select class="form-control" id="si-variation" onchange="onInvVariationChange()">
             <option value="">Select variation…</option>
           </select>
         </div>
@@ -255,6 +255,16 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
             <input class="form-control" id="si-gsm-custom" type="text" placeholder="Custom" style="width:80px;display:none">
             <span style="font-size:11px;font-weight:600;color:rgba(44,31,20,0.4);font-family:'DM Mono',monospace">GSM</span>
           </div>
+        </div>
+      </div>
+      <!-- Color / Pattern field — shown when Colored or Printed selected -->
+      <div id="si-color-wrap" style="display:none">
+        <label id="si-color-label" style="display:block;font-size:12px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">Color</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select class="form-control" id="si-color" onchange="toggleInvCustomColor()" style="flex:1">
+            <option value="">Select color...</option>
+          </select>
+          <input class="form-control" id="si-color-custom" placeholder="Enter color name" style="display:none;flex:1">
         </div>
       </div>
     </div>
@@ -725,6 +735,53 @@ function getInvGSM(){
 }
 function getMaterialUnit(name){return METRES_MATERIALS.includes(name)?'m':'nos';}
 
+
+const INV_JUTE_COLORS=['Navy Blue','Black Laminated','Brown','Mustard','Maroon','Pink','Red','Parrot Green','Green','Teal Blue','Orange','Purple','Yellow','Royal Blue','Light Green'];
+const INV_JUTE_PATTERNS=['Viala Jute Maroon','Viala Jute Pink','Butterfly Jute','Flower Print Jute','Gold & Black Jute','Red Flower Natural','Natural & Black Blocks','Half White & Pink Flowers','Ajrak Hearts','Ajrak Waves','Orange Wareli','Brown Checks Jute'];
+const INV_CANVAS_COLORS=['Purple','Dark Grey','Royal Blue','Black','Navy Blue','Yellow','Red','Pink','Orange','Dark Green','Sky Blue','Marine Blue','Mustard','Honey','Pista Green','Blue','Cream','White','Rani Pink','Mehendi','Light Blue','Light Grey','Maroon','Dark Brown','Chocolate Brown'];
+const INV_LINING_COLORS=['Red','Navy Blue','Light Green','Dark Green','Mustard','Pink','White','Royal Blue','Black','Cream','Yellow','Grey','Khaki','Sky Blue','Teal Blue','Dark Pink','Natural','Pista'];
+
+function onInvVariationChange(){
+  const cat=document.getElementById('si-material').value;
+  const variation=document.getElementById('si-variation').value;
+  const wrap=document.getElementById('si-color-wrap');
+  const label=document.getElementById('si-color-label');
+  const sel=document.getElementById('si-color');
+  if(!wrap||!sel)return;
+
+  let colors=null;
+  let lbl='Color';
+  if(cat==='Jute Fabric'){
+    if(variation==='Colored'){colors=INV_JUTE_COLORS;}
+    else if(variation==='Printed'){colors=INV_JUTE_PATTERNS;lbl='Pattern Name';}
+  }else if(cat==='Cotton Canvas'&&variation==='Colored'){colors=INV_CANVAS_COLORS;}
+  else if(cat==='Lining'){colors=INV_LINING_COLORS;}
+
+  if(colors){
+    wrap.style.display='block';
+    if(label)label.textContent=lbl;
+    sel.innerHTML='<option value="">Select '+lbl.toLowerCase()+'...</option>';
+    colors.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+    const other=document.createElement('option');other.value='Other';other.textContent='Other (type below)';sel.appendChild(other);
+  }else{
+    wrap.style.display='none';
+  }
+}
+
+function toggleInvCustomColor(){
+  const sel=document.getElementById('si-color');
+  const custom=document.getElementById('si-color-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='Other'?'block':'none';
+}
+
+function getInvColorValue(){
+  const sel=document.getElementById('si-color');
+  const custom=document.getElementById('si-color-custom');
+  if(!sel)return'';
+  return sel.value==='Other'?(custom?custom.value:''):sel.value;
+}
+
 function updateTotal(){
   const qty=Number(document.getElementById('si-qty').value)||0;
   const cost=Number(document.getElementById('si-unit-cost').value)||0;
@@ -757,6 +814,7 @@ async function submitStockIn(){
   const btn=document.getElementById('si-submit');
   btn.disabled=true;btn.textContent='Saving...';
   const variation=document.getElementById('si-variation')?document.getElementById('si-variation').value||'':'';
+  const colorPattern=getInvColorValue();
   const gsm=getInvGSM();
   const adjReason=document.getElementById('si-adj-reason')?document.getElementById('si-adj-reason').value:'';
   const adjCustom=document.getElementById('si-adj-reason-custom')?document.getElementById('si-adj-reason-custom').value:'';
@@ -765,7 +823,7 @@ async function submitStockIn(){
   const entryType=currentStockInType==='stockin'?'IN':'ADJ';
   const result=await sheetPost({
     action:'stockIn',material,qty:finalQty,unitCost,unit,supplier,
-    variation,gsm,entryType,
+    variation,colorPattern,gsm,entryType,
     reference:finalReason||(document.getElementById('si-reference').value||''),
     date:document.getElementById('si-date').value||''
   });
@@ -799,6 +857,10 @@ function resetStockIn(){
   if(document.getElementById('si-variation'))document.getElementById('si-variation').value='';
   if(document.getElementById('si-gsm'))document.getElementById('si-gsm').value='';
   if(document.getElementById('si-gsm-custom'))document.getElementById('si-gsm-custom').value='';
+  const siColorWrap=document.getElementById('si-color-wrap');
+  if(siColorWrap)siColorWrap.style.display='none';
+  if(document.getElementById('si-color'))document.getElementById('si-color').value='';
+  if(document.getElementById('si-color-custom')){document.getElementById('si-color-custom').value='';document.getElementById('si-color-custom').style.display='none';}
   document.getElementById('si-total-display').classList.remove('visible');
   document.getElementById('si-unit-hint').textContent='';
   currentStockInType='stockin';
