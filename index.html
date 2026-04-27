@@ -636,6 +636,8 @@ function renderStockLevels(){
   grid.innerHTML='';
   materials.forEach(m=>{
     const stock=Number(m['Current Stock'])||0;
+    const rolls=Number(m['Rolls'])||0;
+    const mpr=Number(m['Metres Per Roll'])||0;
     const threshold=Number(m['Low Stock Threshold'])||0;
     const unit=String(m['Unit']||'');
     const name=String(m['Material']||'');
@@ -648,6 +650,7 @@ function renderStockLevels(){
       +'<div class="stock-mat-name">'+name+'</div>'
       +'<div class="stock-unit-label">'+unit+'</div>'
       +'<div class="stock-val">'+(stock%1===0?stock:stock.toFixed(1))+'</div>'
+      +(rolls>0?'<div style="font-size:11px;color:rgba(44,31,20,0.45);margin-top:2px">'+Math.round(rolls*100)/100+' rolls'+(mpr>0?' · '+mpr+'m/roll':'')+'</div>':'')
       +'<div class="stock-threshold">Min: '+threshold+' '+unit+'</div>'
       +'<div class="stock-bar-wrap"><div class="stock-bar" style="width:'+Math.min(pct,100)+'%"></div></div>';
     grid.appendChild(card);
