@@ -205,6 +205,10 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
         </optgroup>
         <optgroup label="Handles (Metres)">
           <option value="Handles">Handles</option>
+      <option value="Webbing">Webbing</option>
+        </optgroup>
+        <optgroup label="Accessories (Metres)">
+          <option value="Webbing">Webbing</option>
         </optgroup>
         <optgroup label="Hardware">
           <option value="Zippers">Zippers</option>
@@ -266,6 +270,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
         <input class="form-control" id="si-color-custom" placeholder="Enter color / pattern name" style="display:none;margin-top:6px">
       </div>
     </div>
+    <!-- Non-fabric sub-fields (color, size, finish etc.) -->
+    <div id="si-nonfabric-detail" style="display:none;margin-bottom:14px;padding:10px 12px;background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;flex-direction:column;gap:4px"></div>
     <div class="section-label">Supplier Details</div>
     <div class="form-group">
       <label>Supplier Name <span class="req">*</span></label>
@@ -323,6 +329,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Parachute">Parachute</option>
       <option value="Matt Fabric">Matt Fabric</option>
       <option value="Handles">Handles</option>
+      <option value="Webbing">Webbing</option>
       <option value="Zippers">Zippers</option>
       <option value="Lace">Lace</option>
       <option value="Dog Hooks">Dog Hooks</option>
@@ -364,6 +371,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Lace">Lace</option>
       <option value="Webbing">Webbing</option>
       <option value="Handles">Handles</option>
+      <option value="Webbing">Webbing</option>
       <option value="Threads">Threads</option>
       <option value="Hardware">Hardware</option>
       <option value="Machine Items">Machine Items</option>
@@ -690,6 +698,15 @@ function onMaterialChange(){
     }
   }else{display.style.display='none';hint.textContent='';}
   updateTotal();updateQtyHint();
+  // Show non-fabric sub-fields
+  const isNonFabric=!INV_FABRICS_WITH_DETAIL.includes(matName)&&matName!=='';
+  const nfWrap=document.getElementById('si-nonfabric-detail');
+  if(isNonFabric&&NON_FABRIC_CONFIG[matName]){
+    showNonFabricSubFields(matName);
+  }else if(nfWrap){
+    nfWrap.style.display='none';
+    nfWrap.innerHTML='';
+  }
   // Show GSM + Variation for fabrics that have them
   const detailWrap=document.getElementById('si-fabric-detail');
   if(INV_FABRICS_WITH_DETAIL.includes(matName)){
@@ -709,7 +726,7 @@ function onMaterialChange(){
   }
 }
 
-const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Zippers','Lace'];
+const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Zippers','Lace','Webbing'];
 const INV_FABRIC_CONFIG={
   'Jute Fabric':   {variations:['Half-White','Natural','Printed','Colored'],gsm:['14/15','13/13','12/12']},
   'Cotton Canvas': {variations:['Natural','Colored','Laminated'],           gsm:['225','300','310','340','400','490','570']},
@@ -780,6 +797,122 @@ function getInvColorValue(){
   return sel.value==='Other'?(custom?custom.value:''):sel.value;
 }
 
+
+// ── NON-FABRIC MATERIAL CONFIG ────────────────────────────
+const NON_FABRIC_CONFIG = {
+  'Zippers': {
+    fields: ['color','number'],
+    colors: ['Black','White','Cream','Juco','Dark Juco','Light Green','Green','Orange','Navy Blue','Light Cream','Red','Purple','Blue','Olive','Bottle Green','Maroon','Teal','Grey'],
+    numbers: ['No.3','No.5','No.8']
+  },
+  'Lace': {
+    fields: ['color','size','type'],
+    colors: ['Cream','White','Baby Pink','Light Blue','Dark Blue','Blue Zari','Black with Juco','Pink with Juco','Light Green with Juco','Light Blue with Juco','Black Zari','Green Zari','Maroon Zari','Gold Zari','Silver Zari'],
+    sizes: ['1 inch','1.5 inch','2 inch'],
+    types: ['Plain','Zari','With Juco','Cotton']
+  },
+  'Webbing': {
+    fields: ['color','width','type'],
+    colors: ['Juco','Cream','Orange','Green','Yellow','Mustard','Bottle Green','Parrot Green','Purple','Black','Light Blue','Brick','Coffee','Pink','Red','Maroon','Grey','White','Dark Blue','Navy Blue','Grape','Teal','Zig-Zag','Multicolor','Black & Juco'],
+    widths: ['1 inch','1.5 inch','2 inch'],
+    types: ['Plain','Designer','Zig-Zag']
+  },
+  'Handles': {
+    fields: ['type','color'],
+    types: ['Cotton','Jute','Rope','Leather','Nylon','Chain'],
+    colors: ['Natural','Black','Brown','Cream','Navy Blue','Tan','Beige','White','Red','Green','Blue']
+  },
+  'Runners': {
+    fields: ['number','finish'],
+    numbers: ['No.3','No.5','No.8'],
+    finishes: ['Steel','Antique','Plastic']
+  },
+  'Dog Hooks': {
+    fields: ['size','finish'],
+    sizes: ['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)'],
+    finishes: ['Steel','Antique']
+  },
+  'D-Ring': {
+    fields: ['size','finish'],
+    sizes: ['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)','Tiny (1 cm)'],
+    finishes: ['Steel','Antique']
+  },
+  'Buckles': {
+    fields: ['size','finish'],
+    sizes: ['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)'],
+    finishes: ['Steel','Antique','Plastic']
+  },
+  'Snap Magnetic Button': {
+    fields: ['size','finish'],
+    sizes: ['Big','Medium','Small'],
+    finishes: ['Steel','Antique','Gold','Gunmetal']
+  },
+  'Highlight': {fields: []},
+  'Reveat': {fields: []},
+  'Threads': {
+    fields: ['color'],
+    colors: ['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
+  },
+  'Packaging Bags': {fields: []},
+  'Packaging Boxes': {fields: []}
+};
+
+function buildSubField(labelText, id, options, withOther=true){
+  let html='<div class="form-group" style="margin-bottom:8px">';
+  html+='<label style="display:block;font-size:11px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px">'+labelText+'</label>';
+  html+='<select class="form-control" id="'+id+'" onchange="checkNonFabricOther(''+id+'')" style="margin-bottom:0">';
+  html+='<option value="">Select '+labelText.toLowerCase()+'...</option>';
+  options.forEach(o=>html+='<option value="'+o+'">'+o+'</option>');
+  if(withOther)html+='<option value="Other">Other (type below)</option>';
+  html+='</select>';
+  html+='<input class="form-control" id="'+id+'-custom" placeholder="Enter '+labelText.toLowerCase()+'..." style="display:none;margin-top:6px">';
+  html+='</div>';
+  return html;
+}
+
+function checkNonFabricOther(selectId){
+  const sel=document.getElementById(selectId);
+  const custom=document.getElementById(selectId+'-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='Other'?'block':'none';
+}
+
+function getNonFabricFieldValue(id){
+  const sel=document.getElementById(id);
+  const custom=document.getElementById(id+'-custom');
+  if(!sel)return'';
+  return sel.value==='Other'?(custom?custom.value.trim():''):sel.value;
+}
+
+function showNonFabricSubFields(matName){
+  const wrap=document.getElementById('si-nonfabric-detail');
+  if(!wrap)return;
+  const cfg=NON_FABRIC_CONFIG[matName];
+  if(!cfg||cfg.fields.length===0){wrap.style.display='none';return;}
+  let html='';
+  cfg.fields.forEach(field=>{
+    if(field==='color')html+=buildSubField('Color','si-nf-color',cfg.colors||[]);
+    else if(field==='number')html+=buildSubField('Number','si-nf-number',cfg.numbers||[],false);
+    else if(field==='size')html+=buildSubField('Size','si-nf-size',cfg.sizes||[]);
+    else if(field==='finish')html+=buildSubField('Finish','si-nf-finish',cfg.finishes||[],false);
+    else if(field==='type')html+=buildSubField('Type','si-nf-type',cfg.types||[]);
+    else if(field==='width')html+=buildSubField('Width','si-nf-width',cfg.widths||[],false);
+  });
+  wrap.innerHTML=html;
+  wrap.style.display='block';
+}
+
+function getNonFabricDetails(){
+  return{
+    color:   getNonFabricFieldValue('si-nf-color'),
+    number:  getNonFabricFieldValue('si-nf-number'),
+    size:    getNonFabricFieldValue('si-nf-size'),
+    finish:  getNonFabricFieldValue('si-nf-finish'),
+    type:    getNonFabricFieldValue('si-nf-type'),
+    width:   getNonFabricFieldValue('si-nf-width'),
+  };
+}
+
 function updateTotal(){
   const qty=Number(document.getElementById('si-qty').value)||0;
   const cost=Number(document.getElementById('si-unit-cost').value)||0;
@@ -812,6 +945,7 @@ async function submitStockIn(){
   const btn=document.getElementById('si-submit');
   btn.disabled=true;btn.textContent='Saving...';
   const variation=document.getElementById('si-variation')?document.getElementById('si-variation').value||'':'';
+  const nfDetails=getNonFabricDetails();
   const colorPattern=getInvColorValue();
   const gsm=getInvGSM();
   const adjReason=document.getElementById('si-adj-reason')?document.getElementById('si-adj-reason').value:'';
@@ -821,7 +955,12 @@ async function submitStockIn(){
   const entryType=currentStockInType==='stockin'?'IN':'ADJ';
   const result=await sheetPost({
     action:'stockIn',material,qty:finalQty,unitCost,unit,supplier,
-    variation,colorPattern,gsm,entryType,
+    variation:variation||(nfDetails.color?'':'')||nfDetails.number||nfDetails.size||'',
+    colorPattern:colorPattern||nfDetails.color||'',
+    size:nfDetails.size||'',
+    finish:nfDetails.finish||'',
+    type:nfDetails.type||nfDetails.width||'',
+    gsm,entryType,
     reference:finalReason||(document.getElementById('si-reference').value||''),
     date:document.getElementById('si-date').value||''
   });
@@ -859,6 +998,8 @@ function resetStockIn(){
   if(siColorWrap)siColorWrap.style.display='none';
   if(document.getElementById('si-color'))document.getElementById('si-color').value='';
   if(document.getElementById('si-color-custom')){document.getElementById('si-color-custom').value='';document.getElementById('si-color-custom').style.display='none';}
+  const nfWrap=document.getElementById('si-nonfabric-detail');
+  if(nfWrap){nfWrap.style.display='none';nfWrap.innerHTML='';}
   document.getElementById('si-total-display').classList.remove('visible');
   document.getElementById('si-unit-hint').textContent='';
   currentStockInType='stockin';
