@@ -260,12 +260,10 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <!-- Color / Pattern field — shown when Colored or Printed selected -->
       <div id="si-color-wrap" style="display:none">
         <label id="si-color-label" style="display:block;font-size:12px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">Color</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <select class="form-control" id="si-color" onchange="toggleInvCustomColor()" style="flex:1">
-            <option value="">Select color...</option>
-          </select>
-          <input class="form-control" id="si-color-custom" placeholder="Enter color name" style="display:none;flex:1">
-        </div>
+        <select class="form-control" id="si-color" onchange="toggleInvCustomColor()">
+          <option value="">Select color...</option>
+        </select>
+        <input class="form-control" id="si-color-custom" placeholder="Enter color / pattern name" style="display:none;margin-top:6px">
       </div>
     </div>
     <div class="section-label">Supplier Details</div>
