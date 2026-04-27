@@ -776,7 +776,7 @@ async function submitStockIn(){
     if(logData&&logData.stockLog)stockLog=logData.stockLog;
     document.getElementById('stockin-form-body').style.display='none';
     const ss=document.getElementById('stockin-success');ss.classList.add('visible');
-    document.getElementById('document.getElementById('si-success-title').textContent=(currentStockInType==='stockin'?qty+' '+unit+' of '+material+' added':(Math.abs(qty)+' '+unit+' of '+material+(currentStockInType==='adj-plus'?' adjusted (+)':' adjusted (-)')));
+    document.getElementById('si-success-title').textContent=(currentStockInType==='stockin'?qty+' '+unit+' of '+material+' added':(Math.abs(qty)+' '+unit+' of '+material+(currentStockInType==='adj-plus'?' adjusted (+)':' adjusted (-)')));
     document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(Math.abs(qty)*unitCost)+' · Stock updated';
     showToast('Stock updated: '+material+' +'+qty+' '+unit);
     renderStockLevels();renderAlertBar();
