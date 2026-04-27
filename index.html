@@ -214,6 +214,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
           <option value="Zippers">Zippers</option>
           <option value="Lace">Lace</option>
           <option value="Runners">Runners</option>
+      <option value="Threads">Threads</option>
+          <option value="Threads">Threads</option>
           <option value="Dog Hooks">Dog Hooks</option>
           <option value="Buckles">Buckles</option>
           <option value="D-Ring">D-Ring</option>
@@ -258,6 +260,30 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
             </select>
             <input class="form-control" id="si-gsm-custom" type="text" placeholder="Custom" style="width:80px;display:none">
             <span style="font-size:11px;font-weight:600;color:rgba(44,31,20,0.4);font-family:'DM Mono',monospace">GSM</span>
+          </div>
+        </div>
+      </div>
+      <!-- Rolls and Panna -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="margin-bottom:0">
+          <label>No. of Rolls <span style="font-weight:400;color:rgba(44,31,20,0.4)">(optional)</span></label>
+          <input class="form-control" id="si-rolls" type="number" placeholder="e.g. 5" min="1" step="1" oninput="calcMetresPerRoll()">
+          <div id="si-mpr-display" style="display:none;font-size:11px;color:#1D4ED8;margin-top:4px;font-weight:600"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Panna / Width <span style="font-weight:400;color:rgba(44,31,20,0.4)">(optional)</span></label>
+          <div style="display:flex;gap:4px;align-items:center">
+            <select class="form-control" id="si-panna" onchange="toggleInvPannaCustom()" style="flex:1;padding:9px 6px">
+              <option value="">Width...</option>
+              <option value="36 inch">36"</option>
+              <option value="44 inch">44"</option>
+              <option value="48 inch">48"</option>
+              <option value="54 inch">54"</option>
+              <option value="60 inch">60"</option>
+              <option value="72 inch">72"</option>
+              <option value="Other">Other</option>
+            </select>
+            <input class="form-control" id="si-panna-custom" type="text" placeholder="in" style="width:50px;display:none">
           </div>
         </div>
       </div>
@@ -339,6 +365,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Highlight">Highlight</option>
       <option value="Reveat">Reveat</option>
       <option value="Runners">Runners</option>
+      <option value="Threads">Threads</option>
       <option value="Packaging Bags">Packaging Bags</option>
       <option value="Packaging Boxes">Packaging Boxes</option>
     </select>
@@ -707,9 +734,10 @@ function onMaterialChange(){
     nfWrap.style.display='none';
     nfWrap.innerHTML='';
   }
-  // Show GSM + Variation for fabrics that have them
+  // Show fabric details for ALL fabric materials (Rolls, Panna for all; Variation/GSM for specific ones)
   const detailWrap=document.getElementById('si-fabric-detail');
-  if(INV_FABRICS_WITH_DETAIL.includes(matName)){
+  const isAnyFabric=METRES_MATERIALS.filter(m=>!['Handles','Zippers','Lace','Webbing'].includes(m)).includes(matName);
+  if(isAnyFabric){
     detailWrap.style.display='flex';
     const cfg=INV_FABRIC_CONFIG[matName];
     const varSel=document.getElementById('si-variation');
@@ -723,6 +751,8 @@ function onMaterialChange(){
     }
   }else{
     detailWrap.style.display='none';
+    const varSel=document.getElementById('si-variation');if(varSel)varSel.innerHTML='<option value="">Select variation...</option>';
+    const gsmSel=document.getElementById('si-gsm');if(gsmSel)gsmSel.innerHTML='<option value="">Select GSM...</option>';
   }
 }
 
@@ -740,6 +770,38 @@ function toggleInvCustomGSM(){
   const custom=document.getElementById('si-gsm-custom');
   if(!sel||!custom)return;
   custom.style.display=sel.value==='custom'?'block':'none';
+}
+
+function calcMetresPerRoll(){
+  const rolls=Number(document.getElementById('si-rolls')?document.getElementById('si-rolls').value:0)||0;
+  const qty=Number(document.getElementById('si-qty')?document.getElementById('si-qty').value:0)||0;
+  const display=document.getElementById('si-mpr-display');
+  if(rolls>0&&qty>0&&display){
+    const mpr=Math.round((qty/rolls)*100)/100;
+    display.style.display='block';
+    display.textContent='→ '+mpr+' m per roll';
+  }else if(display){
+    display.style.display='none';
+  }
+}
+
+function toggleInvPannaCustom(){
+  const sel=document.getElementById('si-panna');
+  const custom=document.getElementById('si-panna-custom');
+  if(!sel||!custom)return;
+  custom.style.display=sel.value==='Other'?'inline-block':'none';
+}
+
+function getInvPanna(){
+  const sel=document.getElementById('si-panna');
+  const custom=document.getElementById('si-panna-custom');
+  if(!sel)return'';
+  return sel.value==='Other'?(custom?custom.value.trim()+' inch':''):sel.value;
+}
+
+function getInvRolls(){
+  const el=document.getElementById('si-rolls');
+  return el?Number(el.value)||0:0;
 }
 
 function getInvGSM(){
@@ -853,6 +915,10 @@ const NON_FABRIC_CONFIG = {
     fields: ['color'],
     colors: ['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
   },
+  'Threads': {
+    fields: ['color'],
+    colors: ['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
+  },
   'Packaging Bags': {fields: []},
   'Packaging Boxes': {fields: []}
 };
@@ -961,7 +1027,7 @@ async function submitStockIn(){
     size:nfDetails.size||'',
     finish:nfDetails.finish||'',
     type:nfDetails.type||nfDetails.width||'',
-    gsm,entryType,
+    gsm,rolls,metresPerRoll:(rolls>0&&finalQty>0?Math.round((Math.abs(finalQty)/rolls)*100)/100:0),panna,entryType,
     reference:finalReason||(document.getElementById('si-reference').value||''),
     date:document.getElementById('si-date').value||''
   });
@@ -973,7 +1039,8 @@ async function submitStockIn(){
     document.getElementById('stockin-form-body').style.display='none';
     const ss=document.getElementById('stockin-success');ss.classList.add('visible');
     document.getElementById('si-success-title').textContent=(currentStockInType==='stockin'?qty+' '+unit+' of '+material+' added':(Math.abs(qty)+' '+unit+' of '+material+(currentStockInType==='adj-plus'?' adjusted (+)':' adjusted (-)')));
-    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(Math.abs(qty)*unitCost)+' · Stock updated';
+    const rollsVal=getInvRolls();const pannaVal=getInvPanna();
+    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(Math.abs(qty)*unitCost)+(rollsVal?' · '+rollsVal+' rolls':'')+(pannaVal?' · Panna: '+pannaVal:'')+' · Stock updated';
     showToast('Stock updated: '+material+' +'+qty+' '+unit);
     renderStockLevels();renderAlertBar();
   }else{
@@ -995,6 +1062,11 @@ function resetStockIn(){
   if(document.getElementById('si-variation'))document.getElementById('si-variation').value='';
   if(document.getElementById('si-gsm'))document.getElementById('si-gsm').value='';
   if(document.getElementById('si-gsm-custom'))document.getElementById('si-gsm-custom').value='';
+  if(document.getElementById('si-rolls'))document.getElementById('si-rolls').value='';
+  if(document.getElementById('si-mpr-display'))document.getElementById('si-mpr-display').style.display='none';
+  if(document.getElementById('si-panna'))document.getElementById('si-panna').value='';
+  if(document.getElementById('si-panna-custom')){document.getElementById('si-panna-custom').value='';document.getElementById('si-panna-custom').style.display='none';}
+  const qtyEl=document.getElementById('si-qty');if(qtyEl)qtyEl.style.background='';
   const siColorWrap=document.getElementById('si-color-wrap');
   if(siColorWrap)siColorWrap.style.display='none';
   if(document.getElementById('si-color'))document.getElementById('si-color').value='';
