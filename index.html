@@ -166,11 +166,28 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
   <div class="form-card-header">
     <div class="form-card-icon">&#128229;</div>
     <div>
-      <div class="form-card-title">Stock In &mdash; New Material Received</div>
-      <div class="form-card-sub">Enter supplier details &middot; Stock level updates automatically</div>
+      <div class="form-card-title" id="si-form-title">Stock In &mdash; New Material Received</div>
+      <div class="form-card-sub" id="si-form-sub">Enter supplier details &middot; Stock level updates automatically</div>
     </div>
   </div>
   <div class="form-card-body" id="stockin-form-body">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="log-filter active" id="sit-stockin" onclick="setStockInType('stockin',this)">&#128229; Stock In</button>
+      <button class="log-filter" id="sit-adj-plus" onclick="setStockInType('adj-plus',this)">&#43; Adjustment (Add)</button>
+      <button class="log-filter" id="sit-adj-minus" onclick="setStockInType('adj-minus',this)">&#8722; Adjustment (Remove)</button>
+    </div>
+    <div id="si-adj-reason-wrap" style="display:none;margin-bottom:12px;padding:10px 12px;background:#FFF8E1;border-radius:8px;border:1px solid #FCD34D">
+      <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">Adjustment Reason</div>
+      <select class="form-control" id="si-adj-reason" style="margin-bottom:6px">
+        <option value="">Select reason...</option>
+        <option value="Physical count correction">Physical count correction</option>
+        <option value="Opening stock entry">Opening stock entry</option>
+        <option value="Damaged / wasted">Damaged / wasted</option>
+        <option value="Stock transfer">Stock transfer</option>
+        <option value="Other">Other (type below)</option>
+      </select>
+      <input class="form-control" id="si-adj-reason-custom" placeholder="Additional notes..." style="display:none">
+    </div>
     <div class="section-label">Material Details</div>
     <div class="form-group">
       <label>Material <span class="req">*</span></label>
@@ -343,75 +360,11 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Hardware">Hardware</option>
       <option value="Machine Items">Machine Items</option>
     </select>
-    <button class="btn-submit" onclick="openRegisterStockIn()" style="width:auto;margin:0;padding:8px 16px;font-size:13px">&#43; Stock In</button>
+    <span style="font-size:11px;color:rgba(44,31,20,0.4);margin-left:4px">Read-only view &middot; Use Stock In tab to add entries</span>
   </div>
   <div id="register-content"></div>
 </div>
 
-<!-- REGISTER STOCK IN MODAL -->
-<div class="modal-overlay" id="reg-modal" style="display:none;position:fixed;inset:0;background:rgba(44,31,20,0.6);z-index:300;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border-radius:14px;padding:0;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#F3E8FF;border-radius:14px 14px 0 0">
-      <div style="font-size:15px;font-weight:700;color:#6B21A8">&#128220; Register Stock In</div>
-      <button onclick="closeRegModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:rgba(44,31,20,0.4)">&#10005;</button>
-    </div>
-    <div style="padding:20px;display:flex;flex-direction:column;gap:12px" id="reg-form-body">
-      <div class="form-group" style="margin-bottom:0">
-        <label>Category <span class="req">*</span></label>
-        <select class="form-control" id="rsi-category" onchange="onRegCatChange()">
-          <option value="">Select category...</option>
-          <option value="Jute Fabric">Jute Fabric</option>
-          <option value="Cotton Canvas">Cotton Canvas</option>
-          <option value="Juco Fabric">Juco Fabric</option>
-          <option value="Kadhi Fabric">Kadhi Fabric</option>
-          <option value="Lining">Lining</option>
-          <option value="Kalamkari / Designer">Kalamkari / Designer</option>
-          <option value="Zippers">Zippers</option>
-          <option value="Lace">Lace</option>
-          <option value="Webbing">Webbing</option>
-          <option value="Handles">Handles</option>
-          <option value="Threads">Threads</option>
-          <option value="Hardware">Hardware</option>
-          <option value="Machine Items">Machine Items</option>
-        </select>
-      </div>
-      <!-- Dynamic sub-fields injected here -->
-      <div id="rsi-subfields"></div>
-      <div class="form-row" id="rsi-qty-section" style="display:none">
-        <div class="form-group" style="margin-bottom:0">
-          <label>Quantity <span class="req">*</span></label>
-          <input class="form-control" id="rsi-qty" type="number" min="0" step="0.1" placeholder="0">
-          <div style="font-size:11px;color:rgba(44,31,20,0.4);margin-top:3px" id="rsi-unit-label"></div>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>Rate &#8377; per unit</label>
-          <input class="form-control" id="rsi-rate" type="number" min="0" placeholder="0">
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0" id="rsi-supplier-section" style="display:none">
-        <label>Supplier</label>
-        <input class="form-control" id="rsi-supplier" placeholder="e.g. Ravi Textiles">
-      </div>
-      <div class="form-row" id="rsi-date-section" style="display:none">
-        <div class="form-group" style="margin-bottom:0">
-          <label>Purchase Date</label>
-          <input class="form-control" id="rsi-date" type="date">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>Notes</label>
-          <input class="form-control" id="rsi-notes" placeholder="Optional notes">
-        </div>
-      </div>
-      <button class="btn-submit" id="rsi-submit" onclick="submitRegisterStockIn()" style="margin:0">&#128229; Log Stock In to Register</button>
-    </div>
-    <div id="reg-success" style="display:none;text-align:center;padding:30px">
-      <div style="font-size:36px;margin-bottom:10px">&#9989;</div>
-      <div style="font-size:16px;font-weight:700;color:#6B21A8;margin-bottom:6px" id="reg-success-title">Stock Added</div>
-      <div style="font-size:12px;color:rgba(44,31,20,0.5);margin-bottom:16px" id="reg-success-sub"></div>
-      <button onclick="resetRegForm()" style="background:#6B21A8;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#43; Log Another</button>
-    </div>
-  </div>
-</div>
 
 <script>
 const SHEET_URL="https://script.google.com/macros/s/AKfycbxpcfocezAqlwg37_SujPuDilIyXEeve5A8Niir1vohU3pz2sytBrSIjQyX6vLmoIPN/exec";
@@ -602,7 +555,7 @@ function renderRegister(){
       html+='<td style="font-size:11px">'+(m.type||'—')+'</td>';
       html+='<td style="font-size:11px">'+(m.size||'—')+'</td>';
       html+='<td style="font-size:11px">'+(m.finish||'—')+'</td>';
-      html+='<td style="font-size:11px;font-family:'DM Mono',monospace">'+(m.gsm?m.gsm+' GSM':'—')+'</td>';
+      html+='<td style="font-size:11px;font-family:monospace">'+(m.gsm?m.gsm+' GSM':'—')+'</td>';
       html+='<td style="font-size:11px;color:rgba(44,31,20,0.4)">'+(m.unit||'')+'</td>';
       html+='<td><span class="reg-bal '+balClass+'">'+(bal%1===0?bal:bal.toFixed(1))+'</span></td>';
       html+='</tr>';
@@ -613,206 +566,15 @@ function renderRegister(){
 }
 
 // ── REGISTER MODAL ────────────────────────────────────────
-function openRegisterStockIn(){
-  document.getElementById('reg-modal').style.display='flex';
-  document.getElementById('reg-form-body').style.display='flex';
-  document.getElementById('reg-success').style.display='none';
-  document.getElementById('rsi-subfields').innerHTML='';
-  document.getElementById('rsi-qty-section').style.display='none';
-  document.getElementById('rsi-supplier-section').style.display='none';
-  document.getElementById('rsi-date-section').style.display='none';
-  document.getElementById('rsi-category').value='';
-}
 
-function closeRegModal(){
-  document.getElementById('reg-modal').style.display='none';
-}
 
-function onRegCatChange(){
-  const cat=document.getElementById('rsi-category').value;
-  if(!cat){document.getElementById('rsi-subfields').innerHTML='';return;}
-  const cfg=REG_CONFIG[cat];
-  if(!cfg)return;
 
-  let html='';
-  // Variant field
-  if(cfg.variants){
-    html+='<div class="form-group" style="margin-bottom:0"><label>Variant</label>';
-    html+='<select class="form-control" id="rsi-variant" onchange="onRegVariantChange()">';
-    html+='<option value="">Select variant...</option>';
-    cfg.variants.forEach(v=>html+='<option value="'+v+'">'+v+'</option>');
-    html+='<option value="__other__">Other (type below)</option>';
-    html+='</select>';
-    html+='<input class="form-control" id="rsi-variant-custom" placeholder="Enter variant name" style="display:none;margin-top:6px">';
-    html+='</div>';
-  }
-  // Color field
-  const colors=cfg.colors||cfg.patterns||[];
-  if(colors.length){
-    const label=cfg.patterns?'Pattern / Name':'Color';
-    html+='<div class="form-group" style="margin-bottom:0" id="rsi-color-wrap"><label>'+label+'</label>';
-    html+='<select class="form-control" id="rsi-color" onchange="onRegColorChange()">';
-    html+='<option value="">Select '+label.toLowerCase()+'...</option>';
-    colors.forEach(c=>html+='<option value="'+c+'">'+c+'</option>');
-    html+='<option value="__other__">Other (type below)</option>';
-    html+='</select>';
-    html+='<input class="form-control" id="rsi-color-custom" placeholder="Enter color / pattern name" style="display:none;margin-top:6px">';
-    html+='</div>';
-  }
-  // Size field
-  if(cfg.sizes){
-    html+='<div class="form-group" style="margin-bottom:0"><label>Size / Number</label>';
-    html+='<select class="form-control" id="rsi-size">';
-    html+='<option value="">Select size...</option>';
-    cfg.sizes.forEach(s=>html+='<option value="'+s+'">'+s+'</option>');
-    html+='<option value="__other__">Other</option>';
-    html+='</select></div>';
-  }
-  // Finish field
-  if(cfg.finishes){
-    html+='<div class="form-group" style="margin-bottom:0"><label>Finish</label>';
-    html+='<select class="form-control" id="rsi-finish">';
-    html+='<option value="">Select finish...</option>';
-    cfg.finishes.forEach(f=>html+='<option value="'+f+'">'+f+'</option>');
-    html+='</select></div>';
-  }
-  // Type field (for Zippers, Lace, Webbing, Handles)
-  if(cfg.types&&!cfg.finishes){
-    html+='<div class="form-group" style="margin-bottom:0"><label>Type</label>';
-    html+='<select class="form-control" id="rsi-type">';
-    html+='<option value="">Select type...</option>';
-    cfg.types.forEach(t=>html+='<option value="'+t+'">'+t+'</option>');
-    html+='<option value="__other__">Other</option>';
-    html+='</select></div>';
-  }
-  // GSM field
-  if(cat==='Cotton Canvas'||cat==='Kadhi Fabric'||(cat==='Jute Fabric')){
-    const gsmOpts=cat==='Cotton Canvas'?['225','300','310','340','360','390','400','420','490','570','600','656']:
-                  cat==='Kadhi Fabric'?['90','120','135','150']:
-                  ['12/12','13/13','14/15'];
-    html+='<div class="form-group" style="margin-bottom:0" id="rsi-gsm-wrap"><label>GSM</label>';
-    html+='<select class="form-control" id="rsi-gsm">';
-    html+='<option value="">Select GSM...</option>';
-    gsmOpts.forEach(g=>html+='<option value="'+g+'">'+g+' GSM</option>');
-    html+='<option value="__other__">Other (custom)</option>';
-    html+='</select>';
-    html+='<input class="form-control" id="rsi-gsm-custom" placeholder="Enter GSM" style="display:none;margin-top:6px">';
-    html+='</div>';
-  }
 
-  document.getElementById('rsi-subfields').innerHTML=html;
-  document.getElementById('rsi-qty-section').style.display='grid';
-  document.getElementById('rsi-supplier-section').style.display='block';
-  document.getElementById('rsi-date-section').style.display='grid';
-  document.getElementById('rsi-unit-label').textContent='Unit: '+cfg.unit;
 
-  // Attach GSM custom toggle
-  const gsmSel=document.getElementById('rsi-gsm');
-  if(gsmSel)gsmSel.addEventListener('change',function(){
-    const custom=document.getElementById('rsi-gsm-custom');
-    if(custom)custom.style.display=this.value==='__other__'?'block':'none';
-  });
-}
 
-function onRegVariantChange(){
-  const sel=document.getElementById('rsi-variant');
-  const custom=document.getElementById('rsi-variant-custom');
-  if(!sel||!custom)return;
-  custom.style.display=sel.value==='__other__'?'block':'none';
 
-  // For Jute — show color or pattern based on variant
-  const cat=document.getElementById('rsi-category').value;
-  if(cat!=='Jute Fabric')return;
-  const cfg=REG_CONFIG[cat];
-  const colorWrap=document.getElementById('rsi-color-wrap');
-  if(!colorWrap)return;
-  const variant=sel.value;
-  const colorSel=document.getElementById('rsi-color');
-  if(!colorSel)return;
-  const opts=cfg.colorsByVariant?cfg.colorsByVariant[variant]:null;
-  if(opts){
-    colorWrap.style.display='block';
-    colorSel.innerHTML='<option value="">Select '+(variant==='Printed'?'pattern':'color')+'...</option>';
-    opts.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;colorSel.appendChild(o);});
-    const other=document.createElement('option');other.value='__other__';other.textContent='Other (type below)';colorSel.appendChild(other);
-  }else{
-    colorWrap.style.display='none';
-  }
-}
 
-function onRegColorChange(){
-  const sel=document.getElementById('rsi-color');
-  const custom=document.getElementById('rsi-color-custom');
-  if(!sel||!custom)return;
-  custom.style.display=sel.value==='__other__'?'block':'none';
-}
 
-function getRegFieldValue(id,customId){
-  const sel=document.getElementById(id);
-  if(!sel)return'';
-  if(sel.value==='__other__'){
-    const custom=document.getElementById(customId);
-    return custom?custom.value.trim():'';
-  }
-  return sel.value;
-}
-
-async function submitRegisterStockIn(){
-  const cat=document.getElementById('rsi-category').value;
-  if(!cat){showToast('Select a category');return;}
-  const qty=Number(document.getElementById('rsi-qty').value)||0;
-  if(!qty){showToast('Enter quantity');return;}
-
-  const btn=document.getElementById('rsi-submit');
-  btn.disabled=true;btn.textContent='Saving...';
-
-  const cfg=REG_CONFIG[cat]||{};
-  const variant=getRegFieldValue('rsi-variant','rsi-variant-custom');
-  const colorPattern=getRegFieldValue('rsi-color','rsi-color-custom');
-  const size=document.getElementById('rsi-size')?document.getElementById('rsi-size').value:'';
-  const finish=document.getElementById('rsi-finish')?document.getElementById('rsi-finish').value:'';
-  const type=document.getElementById('rsi-type')?document.getElementById('rsi-type').value:'';
-  const gsm=getRegFieldValue('rsi-gsm','rsi-gsm-custom');
-  const rate=Number(document.getElementById('rsi-rate').value)||0;
-  const supplier=document.getElementById('rsi-supplier').value||'';
-  const date=document.getElementById('rsi-date').value||'';
-  const notes=document.getElementById('rsi-notes').value||'';
-
-  const result=await sheetPost({
-    action:'registerStockIn',
-    category:cat,variant,colorPattern,type,size,finish,gsm,
-    unit:cfg.unit||'Nos',qty,rate,supplier,date,notes
-  });
-
-  if(result&&result.success){
-    const data=await sheetCall({action:'getRegister'});
-    if(data&&data.register)registerData=data.register;
-    renderRegister();
-    document.getElementById('reg-form-body').style.display='none';
-    document.getElementById('reg-success').style.display='block';
-    document.getElementById('reg-success-title').textContent=qty+' '+(cfg.unit||'nos')+' of '+cat+' added';
-    document.getElementById('reg-success-sub').textContent=(colorPattern||variant||'')+' · Saved to Material Register';
-    showToast('Register updated');
-  }else{
-    showToast('Save failed. Try again.');
-    btn.disabled=false;btn.textContent='Log Stock In to Register';
-  }
-}
-
-function resetRegForm(){
-  document.getElementById('reg-form-body').style.display='flex';
-  document.getElementById('reg-success').style.display='none';
-  document.getElementById('rsi-submit').disabled=false;
-  document.getElementById('rsi-submit').textContent='Log Stock In to Register';
-  document.getElementById('rsi-category').value='';
-  document.getElementById('rsi-subfields').innerHTML='';
-  document.getElementById('rsi-qty-section').style.display='none';
-  document.getElementById('rsi-supplier-section').style.display='none';
-  document.getElementById('rsi-date-section').style.display='none';
-  ['rsi-qty','rsi-rate','rsi-supplier','rsi-date','rsi-notes'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-}
 async function initApp(){
   document.getElementById('live-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   const [matData,logData,regData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'}),sheetCall({action:'getRegister'})]);
@@ -866,6 +628,39 @@ function renderAlertBar(){
     if(warnItems.length)msg+='&#9888;&#65039; LOW: '+warnItems.map(m=>m['Material']+' ('+m['Current Stock']+' '+m['Unit']+')').join(', ');
     bar.innerHTML=msg;
   }
+}
+
+let currentStockInType='stockin';
+
+function setStockInType(type,btn){
+  currentStockInType=type;
+  document.querySelectorAll('#page-stockin .log-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const adjWrap=document.getElementById('si-adj-reason-wrap');
+  const title=document.getElementById('si-form-title');
+  const sub=document.getElementById('si-form-sub');
+  const submitBtn=document.getElementById('si-submit');
+  if(type==='stockin'){
+    adjWrap.style.display='none';
+    title.textContent='Stock In — New Material Received';
+    sub.textContent='Enter supplier details · Stock level updates automatically';
+    if(submitBtn)submitBtn.textContent='Log Stock In';
+  }else if(type==='adj-plus'){
+    adjWrap.style.display='block';
+    title.textContent='Stock Adjustment — Add';
+    sub.textContent='Correct an undercount or add opening stock';
+    if(submitBtn)submitBtn.textContent='&#43; Save Adjustment (Add)';
+  }else{
+    adjWrap.style.display='block';
+    title.textContent='Stock Adjustment — Remove';
+    sub.textContent='Correct an overcount or remove damaged/wasted stock';
+    if(submitBtn)submitBtn.textContent='− Save Adjustment (Remove)';
+  }
+  const reasonSel=document.getElementById('si-adj-reason');
+  if(reasonSel)reasonSel.onchange=function(){
+    const custom=document.getElementById('si-adj-reason-custom');
+    if(custom)custom.style.display=this.value==='Other'?'block':'none';
+  };
 }
 
 function onMaterialChange(){
@@ -963,10 +758,15 @@ async function submitStockIn(){
   btn.disabled=true;btn.textContent='Saving...';
   const variation=document.getElementById('si-variation')?document.getElementById('si-variation').value||'':'';
   const gsm=getInvGSM();
+  const adjReason=document.getElementById('si-adj-reason')?document.getElementById('si-adj-reason').value:'';
+  const adjCustom=document.getElementById('si-adj-reason-custom')?document.getElementById('si-adj-reason-custom').value:'';
+  const finalReason=adjReason==='Other'?adjCustom:adjReason;
+  const finalQty=currentStockInType==='adj-minus'?-Math.abs(qty):Math.abs(qty);
+  const entryType=currentStockInType==='stockin'?'IN':'ADJ';
   const result=await sheetPost({
-    action:'stockIn',material,qty,unitCost,unit,supplier,
-    variation,gsm,
-    reference:document.getElementById('si-reference').value||'',
+    action:'stockIn',material,qty:finalQty,unitCost,unit,supplier,
+    variation,gsm,entryType,
+    reference:finalReason||(document.getElementById('si-reference').value||''),
     date:document.getElementById('si-date').value||''
   });
   if(result&&result.success){
@@ -976,8 +776,8 @@ async function submitStockIn(){
     if(logData&&logData.stockLog)stockLog=logData.stockLog;
     document.getElementById('stockin-form-body').style.display='none';
     const ss=document.getElementById('stockin-success');ss.classList.add('visible');
-    document.getElementById('si-success-title').textContent=qty+' '+unit+' of '+material+' added';
-    document.getElementById('si-success-sub').textContent='From '+supplier+' \u00b7 '+fmtINR(qty*unitCost)+' total \u00b7 Stock updated';
+    document.getElementById('document.getElementById('si-success-title').textContent=(currentStockInType==='stockin'?qty+' '+unit+' of '+material+' added':(Math.abs(qty)+' '+unit+' of '+material+(currentStockInType==='adj-plus'?' adjusted (+)':' adjusted (-)')));
+    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(Math.abs(qty)*unitCost)+' · Stock updated';
     showToast('Stock updated: '+material+' +'+qty+' '+unit);
     renderStockLevels();renderAlertBar();
   }else{
@@ -1001,6 +801,8 @@ function resetStockIn(){
   if(document.getElementById('si-gsm-custom'))document.getElementById('si-gsm-custom').value='';
   document.getElementById('si-total-display').classList.remove('visible');
   document.getElementById('si-unit-hint').textContent='';
+  currentStockInType='stockin';
+  setStockInType('stockin',document.getElementById('sit-stockin'));
 }
 
 let invDateFilter='all';
@@ -1073,14 +875,14 @@ function renderLog(){
   filtered.forEach(l=>{
     const type=String(l['Type']).toUpperCase();
     const tr=document.createElement('tr');
-    tr.innerHTML='<td style="font-family:\'DM Mono\',monospace;font-size:11px;white-space:nowrap">'+(l['Date']||'&mdash;')+'</td>'
+    tr.innerHTML='<td style="font-family:monospace;font-size:11px;white-space:nowrap">'+(l['Date']||'&mdash;')+'</td>'
       +'<td><span class="type-badge '+(type==='IN'?'type-in':'type-out')+'">'+(type==='IN'?'IN':'OUT')+'</span></td>'
       +'<td style="font-weight:500">'+(l['Material']||'&mdash;')+'</td>'
-      +'<td style="font-family:\'DM Mono\',monospace;font-weight:600">'+(l['Qty']||0)+'</td>'
+      +'<td style="font-family:monospace;font-weight:600">'+(l['Qty']||0)+'</td>'
       +'<td style="font-size:11px">'+(l['Order ID']?'#'+l['Order ID']+' &middot; '+(l['Client']||''):l['Supplier']||'&mdash;')+'</td>'
       +'<td style="font-size:11px;color:rgba(44,31,20,0.6)">'+(l['Supplier']||'&mdash;')+'</td>'
-      +'<td style="font-family:\'DM Mono\',monospace;font-size:11px">'+(l['Unit Cost']?fmtINR(l['Unit Cost']):'&mdash;')+'</td>'
-      +'<td style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:600">'+(l['Total Cost']?fmtINR(l['Total Cost']):'&mdash;')+'</td>';
+      +'<td style="font-family:monospace;font-size:11px">'+(l['Unit Cost']?fmtINR(l['Unit Cost']):'&mdash;')+'</td>'
+      +'<td style="font-family:monospace;font-size:11px;font-weight:600">'+(l['Total Cost']?fmtINR(l['Total Cost']):'&mdash;')+'</td>';
     tbody.appendChild(tr);
   });
 }
