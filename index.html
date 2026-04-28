@@ -404,6 +404,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Machine Items">Machine Items</option>
     </select>
     <span style="font-size:11px;color:rgba(44,31,20,0.4);margin-left:4px">Read-only view &middot; Use Stock In tab to add entries</span>
+    <button onclick="importFromMasterSheet()" id="btn-import-master" style="margin-left:auto;background:#6B21A8;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">&#8659; Import from Inventory Master</button>
   </div>
   <div id="register-content"></div>
 </div>
@@ -537,6 +538,23 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('page-'+tab).classList.add('active');
   if(tab==='register'){loadRegister();}
+}
+
+async function importFromMasterSheet(){
+  const btn=document.getElementById('btn-import-master');
+  if(btn){btn.disabled=true;btn.textContent='Importing...';}
+  showToast('Importing from Inventory Master sheet...');
+  const result=await sheetPost({action:'importInventoryMaster'});
+  if(result&&result.success){
+    showToast('✓ '+result.message);
+    // Reload register data
+    const data=await sheetCall({action:'getRegister'});
+    if(data&&data.register)registerData=data.register;
+    renderRegister();
+  }else{
+    showToast('Import failed: '+(result&&result.error?result.error:'Unknown error'));
+  }
+  if(btn){btn.disabled=false;btn.textContent='♙ Import from Inventory Master';}
 }
 
 async function loadRegister(){
