@@ -153,6 +153,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
   <div class="nav-tab"        id="tab-stockin" onclick="switchTab('stockin')">&#65291; Stock In</div>
   <div class="nav-tab"        id="tab-log"      onclick="switchTab('log')">&#128203; Movement Log</div>
   <div class="nav-tab"        id="tab-register" onclick="switchTab('register')">&#128220; Register</div>
+  <div class="nav-tab"        id="tab-overview" onclick="switchTab('overview')">&#128269; Overview</div>
+  <div class="nav-tab"        id="tab-costs"    onclick="switchTab('costs')">&#128176; Costs</div>
 </div>
 
 <div class="page active" id="page-stock">
@@ -380,6 +382,70 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
   </div>
 </div>
 
+<!-- OVERVIEW PAGE -->
+<div class="page" id="page-overview">
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <input class="form-control" id="ov-search" placeholder="&#128269; Search color, variant, pattern..." oninput="renderOverviewTab()" style="max-width:240px">
+    <select class="form-control" id="ov-cat-filter" onchange="renderOverviewTab()" style="width:auto">
+      <option value="">All Categories</option>
+      <option value="Cotton Canvas">Cotton Canvas</option>
+      <option value="Jute Fabric">Jute Fabric</option>
+      <option value="Lining">Lining</option>
+      <option value="Zippers">Zippers</option>
+      <option value="Lace">Lace</option>
+      <option value="Webbing">Webbing</option>
+      <option value="Handles">Handles</option>
+      <option value="Threads">Threads</option>
+      <option value="Hardware">Hardware</option>
+      <option value="Machine Items">Machine Items</option>
+    </select>
+    <div style="display:flex;gap:6px">
+      <button class="log-filter active" id="ovs-all"  onclick="setOvStatus('all',this)">All</button>
+      <button class="log-filter"        id="ovs-ok"   onclick="setOvStatus('ok',this)">&#10003; OK</button>
+      <button class="log-filter"        id="ovs-low"  onclick="setOvStatus('low',this)">&#9651; Low</button>
+      <button class="log-filter"        id="ovs-out"  onclick="setOvStatus('out',this)">&#9679; Out</button>
+    </div>
+    <span id="ov-count" style="font-size:11px;color:rgba(44,31,20,0.4);margin-left:auto"></span>
+  </div>
+  <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border)">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="background:#1565C0;color:#fff">
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap">Category</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Variant</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Color / Pattern</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Size</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Unit</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Balance</th>
+          <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Status</th>
+        </tr>
+      </thead>
+      <tbody id="ov-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COSTS PAGE -->
+<div class="page" id="page-costs">
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <input class="form-control" id="cost-search" placeholder="&#128269; Search material..." oninput="renderCostsTab()" style="max-width:240px">
+    <select class="form-control" id="cost-cat-filter" onchange="renderCostsTab()" style="width:auto">
+      <option value="">All Categories</option>
+      <option value="Cotton Canvas">Cotton Canvas</option>
+      <option value="Jute Fabric">Jute Fabric</option>
+      <option value="Lining">Lining</option>
+      <option value="Zippers">Zippers</option>
+      <option value="Lace">Lace</option>
+      <option value="Webbing">Webbing</option>
+      <option value="Handles">Handles</option>
+      <option value="Threads">Threads</option>
+      <option value="Hardware">Hardware</option>
+      <option value="Machine Items">Machine Items</option>
+    </select>
+  </div>
+  <div id="costs-content"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- REGISTER PAGE -->
@@ -442,6 +508,22 @@ async function sheetPost(body){
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','Saved \u00b7 karmatotes@gmail.com');return data;
   }catch(err){setSyncStatus('err','Save failed.');console.error(err);return null;}
+}
+
+async function syncRegisterToStock(){
+  const btn=document.getElementById('btn-sync-register');
+  if(btn){btn.disabled=true;btn.textContent='Syncing...';}
+  const result=await sheetPost({action:'syncRegisterToStockLevels'});
+  if(result&&result.success){
+    showToast('✓ '+result.message);
+    // Reload materials
+    const data=await sheetCall({action:'getMaterials'});
+    if(data&&data.materials)materials=data.materials;
+    renderStockLevels();renderAlertBar();
+  }else{
+    showToast('Sync failed: '+(result&&result.error?result.error:'Unknown error'));
+  }
+  if(btn){btn.disabled=false;btn.textContent='⇅ Sync from Register';}
 }
 
 async function refreshData(){
@@ -538,6 +620,8 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('page-'+tab).classList.add('active');
   if(tab==='register'){loadRegister();}
+  if(tab==='overview'){renderOverviewTab();}
+  if(tab==='costs'){renderCostsTab();}
 }
 
 async function importFromMasterSheet(){
@@ -635,6 +719,163 @@ function renderRegister(){
 
 
 
+
+
+// ── OVERVIEW TAB ─────────────────────────────────────────────
+let ovStatusFilter = 'all';
+
+function setOvStatus(s, btn){
+  ovStatusFilter = s;
+  document.querySelectorAll('#page-overview .log-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverviewTab();
+}
+
+function renderOverviewTab(){
+  const search = (document.getElementById('ov-search').value||'').toLowerCase();
+  const cat    = document.getElementById('ov-cat-filter').value;
+  const tbody  = document.getElementById('ov-tbody');
+  if(!tbody) return;
+
+  // Build balance map from registerData
+  const balMap = {};
+  const metaMap = {};
+  registerData.forEach(r => {
+    const key = [r['Category'],r['Variant']||'',r['Color/Pattern']||'',r['Size']||'',r['Finish']||'',r['Unit']||''].join('|');
+    if(!balMap[key]) { balMap[key]=0; metaMap[key]={category:r['Category'],variant:r['Variant']||'',color:r['Color/Pattern']||'',size:r['Size']||'',finish:r['Finish']||'',unit:r['Unit']||''}; }
+    balMap[key] += String(r['Type (IN/OUT)']).toUpperCase()==='IN' ? (Number(r['Qty'])||0) : -(Number(r['Qty'])||0);
+  });
+
+  const items = Object.keys(balMap).map(key => ({...metaMap[key], balance: Math.round(balMap[key]*100)/100}));
+
+  const filtered = items.filter(item => {
+    const ms = !search || [item.category,item.variant,item.color,item.size].join(' ').toLowerCase().includes(search);
+    const cs = !cat || item.category === cat;
+    const bal = item.balance;
+    const ss = ovStatusFilter==='all' ? true :
+               ovStatusFilter==='ok'  ? bal > 10 :
+               ovStatusFilter==='low' ? bal > 0 && bal <= 10 :
+               ovStatusFilter==='out' ? bal <= 0 : true;
+    return ms && cs && ss;
+  }).sort((a,b) => a.category.localeCompare(b.category) || (a.color||a.variant).localeCompare(b.color||b.variant));
+
+  const countEl = document.getElementById('ov-count');
+  if(countEl) countEl.textContent = filtered.length + ' variants';
+
+  tbody.innerHTML = '';
+  if(!filtered.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No variants found</td></tr>';
+    return;
+  }
+
+  let lastCat = '';
+  filtered.forEach(item => {
+    const bal = item.balance;
+    const status = bal <= 0 ? 'OUT' : bal <= 10 ? 'LOW' : 'OK';
+    const statusColor = bal <= 0 ? '#C0392B' : bal <= 10 ? '#92400E' : '#166534';
+    const statusBg = bal <= 0 ? '#FFEBEE' : bal <= 10 ? '#FFF8E1' : '#E8F5E9';
+    const rowBg = item.category !== lastCat ? '' : '';
+    lastCat = item.category;
+
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding:8px 12px;font-size:11px;font-weight:600;color:#1565C0">${item.category}</td>
+      <td style="padding:8px 12px;font-size:12px">${item.variant||'—'}</td>
+      <td style="padding:8px 12px;font-size:12px;font-weight:500">${item.color||'—'}</td>
+      <td style="padding:8px 12px;font-size:11px;color:rgba(44,31,20,0.5)">${item.size||'—'}</td>
+      <td style="padding:8px 12px;font-size:11px;color:rgba(44,31,20,0.4)">${item.unit||''}</td>
+      <td style="padding:8px 12px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;font-size:13px">${bal%1===0?bal:bal.toFixed(1)}</td>
+      <td style="padding:8px 12px;text-align:center"><span style="background:${statusBg};color:${statusColor};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${status}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── COSTS TAB ────────────────────────────────────────────────
+function renderCostsTab(){
+  const search = (document.getElementById('cost-search').value||'').toLowerCase();
+  const cat    = document.getElementById('cost-cat-filter').value;
+  const content = document.getElementById('costs-content');
+  if(!content) return;
+
+  // Get all stock-in entries with rates from registerData
+  const inEntries = registerData.filter(r =>
+    String(r['Type (IN/OUT)']).toUpperCase() === 'IN' &&
+    (Number(r['Rate'])||0) > 0
+  );
+
+  // Group by item key, find latest rate per item
+  const latestRateMap = {};
+  const historyMap = {};
+  inEntries.forEach(r => {
+    const key = [r['Category'],r['Variant']||'',r['Color/Pattern']||'',r['Size']||''].join('|');
+    if(!historyMap[key]) historyMap[key] = [];
+    historyMap[key].push({
+      date: r['Date']||'', supplier: r['Supplier']||'',
+      qty: Number(r['Qty'])||0, rate: Number(r['Rate'])||0,
+      unit: r['Unit']||'', category: r['Category'],
+      color: r['Color/Pattern']||'', variant: r['Variant']||'',
+      size: r['Size']||''
+    });
+  });
+
+  // Find latest rate per item
+  Object.keys(historyMap).forEach(key => {
+    const entries = historyMap[key].sort((a,b) => new Date(b.date)-new Date(a.date));
+    latestRateMap[key] = entries[0];
+  });
+
+  // Filter
+  const keys = Object.keys(latestRateMap).filter(key => {
+    const m = latestRateMap[key];
+    const ms = !search || [m.category,m.color,m.variant,m.size].join(' ').toLowerCase().includes(search);
+    const cs = !cat || m.category === cat;
+    return ms && cs;
+  }).sort();
+
+  if(!keys.length){
+    content.innerHTML = '<div class="empty-state">No cost data yet. Rates will appear after stock-in entries with unit costs.</div>';
+    return;
+  }
+
+  // Group by category
+  const byCat = {};
+  keys.forEach(key => {
+    const m = latestRateMap[key];
+    if(!byCat[m.category]) byCat[m.category] = [];
+    byCat[m.category].push({key, latest: m, history: historyMap[key]});
+  });
+
+  let html = '';
+  Object.keys(byCat).sort().forEach(catName => {
+    html += `<div style="background:var(--surface);border-radius:12px;border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
+      <div style="padding:10px 16px;background:#1565C0;color:#fff;font-size:13px;font-weight:700">${catName}</div>`;
+
+    byCat[catName].forEach(({key, latest, history}) => {
+      const label = [latest.variant, latest.color, latest.size].filter(Boolean).join(' — ') || latest.color || '—';
+      html += `<div style="border-bottom:1px solid var(--border);padding:12px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:13px;font-weight:600;color:var(--bark)">${label}</div>
+          <div style="font-size:16px;font-weight:700;color:#1565C0">&#8377;${latest.rate} <span style="font-size:11px;font-weight:400;color:rgba(44,31,20,0.4)">per ${latest.unit}</span></div>
+        </div>
+        <div style="font-size:11px;color:rgba(44,31,20,0.4);margin-bottom:8px">Last purchased: ${latest.date||'—'} &middot; ${latest.supplier||'—'}</div>`;
+
+      if(history.length > 1){
+        html += `<details style="margin-top:4px">
+          <summary style="font-size:11px;color:#1565C0;cursor:pointer;font-weight:600">View price history (${history.length} entries)</summary>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+            <tr style="background:#EFF6FF"><th style="padding:4px 8px;text-align:left">Date</th><th style="padding:4px 8px;text-align:left">Supplier</th><th style="padding:4px 8px;text-align:right">Qty</th><th style="padding:4px 8px;text-align:right">Rate</th><th style="padding:4px 8px;text-align:right">Total</th></tr>`;
+        history.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(h => {
+          html += `<tr style="border-bottom:1px solid #EFF6FF"><td style="padding:4px 8px">${h.date||'—'}</td><td style="padding:4px 8px">${h.supplier||'—'}</td><td style="padding:4px 8px;text-align:right">${h.qty} ${h.unit}</td><td style="padding:4px 8px;text-align:right;font-weight:600">&#8377;${h.rate}</td><td style="padding:4px 8px;text-align:right">&#8377;${Math.round(h.qty*h.rate)}</td></tr>`;
+        });
+        html += `</table></details>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  content.innerHTML = html;
+}
 
 async function initApp(){
   document.getElementById('live-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
