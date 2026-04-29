@@ -30,7 +30,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 .date-badge{background:rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:12px;font-family:'DM Mono',monospace}
 .btn-link{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
 .btn-link:hover{background:rgba(255,255,255,0.25)}
-.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0}
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;overflow-x:auto}
 .nav-tab{padding:12px 18px;font-size:13px;font-weight:500;color:rgba(44,31,20,0.5);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
 .nav-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
 .nav-tab:hover:not(.active){color:var(--bark)}
@@ -108,11 +108,9 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 .reg-table tr:hover td{background:var(--cream)}
 .reg-bal{font-weight:700;font-family:"DM Mono",monospace}
 .reg-bal.ok{color:var(--moss)}.reg-bal.low{color:#92400E}.reg-bal.out{color:var(--red)}
-.modal-overlay{display:flex}
 .btn-refresh{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .2s}
 .btn-refresh:hover{background:rgba(255,255,255,0.25)}
 .btn-refresh.spinning span{display:inline-block;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 .date-filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .df-btn{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;color:var(--bark);transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
 .df-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -122,7 +120,7 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 .df-input{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--bark);outline:none}
 .df-input:focus{border-color:var(--blue)}
 .df-label{font-size:11px;color:rgba(44,31,20,0.5);font-weight:500}
-.df-results{font-size:11px;color:rgba(44,31,20,0.4);margin-left:auto}
+.df-results{font-size:11px;color:rgba(44,31,20,0.4);margin-left:auto;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -137,65 +135,50 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 </div>
 <header>
   <div class="logo">
-    <div class="logo-mark">&#128230;</div>
-    <div><h1>KarmaTotes</h1><span>Inventory &middot; Stock Tracker</span></div>
+    <div class="logo-mark">📦</div>
+    <div><h1>KarmaTotes</h1><span>Inventory · Stock Tracker</span></div>
   </div>
   <div class="header-right">
     <div class="date-badge" id="live-date"></div>
     <button class="btn-refresh" id="btn-refresh" onclick="refreshData()"><span>↻</span> Refresh</button>
-    <a href="https://karmatotes.github.io/tracker/" target="_blank" class="btn-link">&#8862; Production</a>
-    <a href="https://karmatotes.github.io/orders/" target="_blank" class="btn-link">&#65291; Orders</a>
+    <a href="https://karmatotes.github.io/tracker/" target="_blank" class="btn-link">⊞ Production</a>
+    <a href="https://karmatotes.github.io/orders/" target="_blank" class="btn-link">＋ Orders</a>
   </div>
 </header>
 <div class="alert-bar clear" id="alert-bar">Loading stock levels...</div>
 <div class="nav-tabs">
-  <div class="nav-tab active" id="tab-stock"   onclick="switchTab('stock')">&#128202; Stock Levels</div>
-  <div class="nav-tab"        id="tab-stockin" onclick="switchTab('stockin')">&#65291; Stock In</div>
-  <div class="nav-tab"        id="tab-log"      onclick="switchTab('log')">&#128203; Movement Log</div>
-  <div class="nav-tab"        id="tab-register" onclick="switchTab('register')">&#128220; Register</div>
-  <div class="nav-tab"        id="tab-overview" onclick="switchTab('overview')">&#128269; Overview</div>
-  <div class="nav-tab"        id="tab-costs"    onclick="switchTab('costs')">&#128176; Costs</div>
+  <div class="nav-tab active" id="tab-stock"   onclick="switchTab('stock')">📊 Stock Levels</div>
+  <div class="nav-tab"        id="tab-stockin" onclick="switchTab('stockin')">＋ Stock In</div>
+  <div class="nav-tab"        id="tab-log"      onclick="switchTab('log')">📝 Movement Log</div>
+  <div class="nav-tab"        id="tab-register" onclick="switchTab('register')">📋 Register</div>
+  <div class="nav-tab"        id="tab-overview" onclick="switchTab('overview')">🔍 Overview</div>
+  <div class="nav-tab"        id="tab-costs"    onclick="switchTab('costs')">💰 Costs</div>
 </div>
 
+<!-- STOCK LEVELS PAGE -->
 <div class="page active" id="page-stock">
   <div class="stock-grid" id="stock-grid">
     <div class="empty-state">Loading materials...</div>
   </div>
 </div>
 
+<!-- STOCK IN PAGE -->
 <div class="page" id="page-stockin">
 <div class="form-card" style="margin-top:0">
   <div class="form-card-header">
-    <div class="form-card-icon">&#128229;</div>
+    <div class="form-card-icon">📦</div>
     <div>
-      <div class="form-card-title" id="si-form-title">Stock In &mdash; New Material Received</div>
-      <div class="form-card-sub" id="si-form-sub">Enter supplier details &middot; Stock level updates automatically</div>
+      <div class="form-card-title" id="si-form-title">Stock In — New Material Received</div>
+      <div class="form-card-sub" id="si-form-sub">Enter supplier details · Stock level updates automatically</div>
     </div>
   </div>
   <div class="form-card-body" id="stockin-form-body">
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-      <button class="log-filter active" id="sit-stockin" onclick="setStockInType('stockin',this)">&#128229; Stock In</button>
-      <button class="log-filter" id="sit-adj-plus" onclick="setStockInType('adj-plus',this)">&#43; Adjustment (Add)</button>
-      <button class="log-filter" id="sit-adj-minus" onclick="setStockInType('adj-minus',this)">&#8722; Adjustment (Remove)</button>
-    </div>
-    <div id="si-adj-reason-wrap" style="display:none;margin-bottom:12px;padding:10px 12px;background:#FFF8E1;border-radius:8px;border:1px solid #FCD34D">
-      <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">Adjustment Reason</div>
-      <select class="form-control" id="si-adj-reason" style="margin-bottom:6px">
-        <option value="">Select reason...</option>
-        <option value="Physical count correction">Physical count correction</option>
-        <option value="Opening stock entry">Opening stock entry</option>
-        <option value="Damaged / wasted">Damaged / wasted</option>
-        <option value="Stock transfer">Stock transfer</option>
-        <option value="Other">Other (type below)</option>
-      </select>
-      <input class="form-control" id="si-adj-reason-custom" placeholder="Additional notes..." style="display:none">
-    </div>
     <div class="section-label">Material Details</div>
     <div class="form-group">
       <label>Material <span class="req">*</span></label>
       <select class="form-control" id="si-material" onchange="onMaterialChange()">
         <option value="">Select material...</option>
-        <optgroup label="Fabric &amp; Sheet (Metres)">
+        <optgroup label="Fabrics (Metres)">
           <option value="Jute Fabric">Jute Fabric</option>
           <option value="Cotton Canvas">Cotton Canvas</option>
           <option value="Juco Fabric">Juco Fabric</option>
@@ -205,18 +188,14 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
           <option value="Parachute">Parachute</option>
           <option value="Matt Fabric">Matt Fabric</option>
         </optgroup>
-        <optgroup label="Handles (Metres)">
-          <option value="Handles">Handles</option>
-      <option value="Webbing">Webbing</option>
-        </optgroup>
         <optgroup label="Accessories (Metres)">
+          <option value="Handles">Handles</option>
           <option value="Webbing">Webbing</option>
         </optgroup>
-        <optgroup label="Hardware">
+        <optgroup label="Hardware &amp; Notions">
           <option value="Zippers">Zippers</option>
           <option value="Lace">Lace</option>
           <option value="Runners">Runners</option>
-      <option value="Threads">Threads</option>
           <option value="Threads">Threads</option>
           <option value="Dog Hooks">Dog Hooks</option>
           <option value="Buckles">Buckles</option>
@@ -225,81 +204,21 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
           <option value="Highlight">Highlight</option>
           <option value="Reveat">Reveat</option>
         </optgroup>
-        <optgroup label="Packaging (Numbers)">
-          <option value="Packaging Bags">Packaging Bags</option>
-          <option value="Packaging Boxes">Packaging Boxes</option>
-        </optgroup>
       </select>
     </div>
     <div id="current-stock-display" style="display:none;margin-bottom:14px;padding:8px 12px;background:var(--cream);border-radius:7px;font-size:12px;color:var(--bark)"></div>
     <div class="form-row">
       <div class="form-group">
         <label>Quantity Received <span class="req">*</span></label>
-        <input class="form-control" id="si-qty" type="number" placeholder="100" min="0.1" step="0.1" id="si-qty" oninput="updateTotal();updateQtyHint()">
+        <input class="form-control" id="si-qty" type="number" placeholder="100" min="0.1" step="0.1" oninput="updateTotal();updateQtyHint()">
       </div>
       <div class="form-group">
-        <label>Unit Cost &#8377; <span class="req">*</span></label>
+        <label>Unit Cost ₹ <span class="req">*</span></label>
         <input class="form-control" id="si-unit-cost" type="number" placeholder="120" min="0" oninput="updateTotal()">
         <div class="form-hint" id="si-unit-hint"></div>
       </div>
     </div>
     <div class="total-display" id="si-total-display"></div>
-    <!-- GSM + Variation — shown only for fabrics that have them -->
-    <div id="si-fabric-detail" style="display:none;margin-bottom:14px;padding:10px 12px;background:#EFF6FF;border-radius:8px;border:1px solid #BFDBFE;flex-direction:column;gap:10px">
-      <div style="font-size:11px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:.4px">Fabric Details</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group" style="margin-bottom:0">
-          <label>Variation</label>
-          <select class="form-control" id="si-variation" onchange="onInvVariationChange()">
-            <option value="">Select variation…</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>GSM</label>
-          <div style="display:flex;gap:6px;align-items:center">
-            <select class="form-control" id="si-gsm" onchange="toggleInvCustomGSM()" style="flex:1">
-              <option value="">Select GSM…</option>
-            </select>
-            <input class="form-control" id="si-gsm-custom" type="text" placeholder="Custom" style="width:80px;display:none">
-            <span style="font-size:11px;font-weight:600;color:rgba(44,31,20,0.4);font-family:'DM Mono',monospace">GSM</span>
-          </div>
-        </div>
-      </div>
-      <!-- Rolls and Panna -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group" style="margin-bottom:0">
-          <label>No. of Rolls <span style="font-weight:400;color:rgba(44,31,20,0.4)">(optional)</span></label>
-          <input class="form-control" id="si-rolls" type="number" placeholder="e.g. 5" min="1" step="1" oninput="calcMetresPerRoll()">
-          <div id="si-mpr-display" style="display:none;font-size:11px;color:#1D4ED8;margin-top:4px;font-weight:600"></div>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>Panna / Width <span style="font-weight:400;color:rgba(44,31,20,0.4)">(optional)</span></label>
-          <div style="display:flex;gap:4px;align-items:center">
-            <select class="form-control" id="si-panna" onchange="toggleInvPannaCustom()" style="flex:1;padding:9px 6px">
-              <option value="">Width...</option>
-              <option value="36 inch">36"</option>
-              <option value="44 inch">44"</option>
-              <option value="48 inch">48"</option>
-              <option value="54 inch">54"</option>
-              <option value="60 inch">60"</option>
-              <option value="72 inch">72"</option>
-              <option value="Other">Other</option>
-            </select>
-            <input class="form-control" id="si-panna-custom" type="text" placeholder="in" style="width:50px;display:none">
-          </div>
-        </div>
-      </div>
-      <!-- Color / Pattern field — shown when Colored or Printed selected -->
-      <div id="si-color-wrap" style="display:none">
-        <label id="si-color-label" style="display:block;font-size:12px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">Color</label>
-        <select class="form-control" id="si-color" onchange="toggleInvCustomColor()">
-          <option value="">Select color...</option>
-        </select>
-        <input class="form-control" id="si-color-custom" placeholder="Enter color / pattern name" style="display:none;margin-top:6px">
-      </div>
-    </div>
-    <!-- Non-fabric sub-fields (color, size, finish etc.) -->
-    <div id="si-nonfabric-detail" style="display:none;margin-bottom:14px;padding:10px 12px;background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;flex-direction:column;gap:4px"></div>
     <div class="section-label">Supplier Details</div>
     <div class="form-group">
       <label>Supplier Name <span class="req">*</span></label>
@@ -315,17 +234,18 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
         <input class="form-control" id="si-reference" placeholder="INV-2024-001">
       </div>
     </div>
-    <button class="btn-submit" id="si-submit" onclick="submitStockIn()">&#128229; Log Stock In</button>
+    <button class="btn-submit" id="si-submit" onclick="submitStockIn()">✓ Log Stock In</button>
   </div>
   <div class="success-flash" id="stockin-success">
-    <div class="success-flash-icon">&#9989;</div>
+    <div class="success-flash-icon">✅</div>
     <div class="success-flash-title" id="si-success-title">Stock Added</div>
     <div class="success-flash-sub" id="si-success-sub"></div>
-    <button class="btn-new-entry" onclick="resetStockIn()">&#65291; Log Another</button>
+    <button class="btn-new-entry" onclick="resetStockIn()">＋ Log Another</button>
   </div>
 </div>
 </div>
 
+<!-- MOVEMENT LOG PAGE -->
 <div class="page" id="page-log">
   <div class="date-filter-bar">
     <button class="df-btn active" id="df-all"       onclick="setInvDateFilter('all',this)">All Time</button>
@@ -368,8 +288,6 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
       <option value="Reveat">Reveat</option>
       <option value="Runners">Runners</option>
       <option value="Threads">Threads</option>
-      <option value="Packaging Bags">Packaging Bags</option>
-      <option value="Packaging Boxes">Packaging Boxes</option>
     </select>
   </div>
   <div class="log-table-wrap">
@@ -382,28 +300,36 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
   </div>
 </div>
 
+<!-- REGISTER PAGE -->
+<div class="page" id="page-register">
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <input class="form-control" id="reg-search" placeholder="🔍 Search variant, color, pattern..." oninput="renderRegister()" style="max-width:260px">
+    <select class="form-control" id="reg-cat-filter" onchange="renderRegister()" style="width:auto">
+      <option value="">All Categories</option>
+      <option value="Jute Fabric">Jute Fabric</option>
+      <option value="Cotton Canvas">Cotton Canvas</option>
+      <option value="Juco Fabric">Juco Fabric</option>
+      <option value="Kadhi Fabric">Kadhi Fabric</option>
+    </select>
+    <span style="font-size:11px;color:rgba(44,31,20,0.4);margin-left:4px">Read-only view · Use Stock In tab to add entries</span>
+  </div>
+  <div id="register-content"></div>
+</div>
+
 <!-- OVERVIEW PAGE -->
 <div class="page" id="page-overview">
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <input class="form-control" id="ov-search" placeholder="&#128269; Search color, variant, pattern..." oninput="renderOverviewTab()" style="max-width:240px">
+    <input class="form-control" id="ov-search" placeholder="🔍 Search color, variant, pattern..." oninput="renderOverviewTab()" style="max-width:240px">
     <select class="form-control" id="ov-cat-filter" onchange="renderOverviewTab()" style="width:auto">
       <option value="">All Categories</option>
       <option value="Cotton Canvas">Cotton Canvas</option>
       <option value="Jute Fabric">Jute Fabric</option>
-      <option value="Lining">Lining</option>
-      <option value="Zippers">Zippers</option>
-      <option value="Lace">Lace</option>
-      <option value="Webbing">Webbing</option>
-      <option value="Handles">Handles</option>
-      <option value="Threads">Threads</option>
-      <option value="Hardware">Hardware</option>
-      <option value="Machine Items">Machine Items</option>
     </select>
     <div style="display:flex;gap:6px">
       <button class="log-filter active" id="ovs-all"  onclick="setOvStatus('all',this)">All</button>
-      <button class="log-filter"        id="ovs-ok"   onclick="setOvStatus('ok',this)">&#10003; OK</button>
-      <button class="log-filter"        id="ovs-low"  onclick="setOvStatus('low',this)">&#9651; Low</button>
-      <button class="log-filter"        id="ovs-out"  onclick="setOvStatus('out',this)">&#9679; Out</button>
+      <button class="log-filter"        id="ovs-ok"   onclick="setOvStatus('ok',this)">✓ OK</button>
+      <button class="log-filter"        id="ovs-low"  onclick="setOvStatus('low',this)">⚠ Low</button>
+      <button class="log-filter"        id="ovs-out"  onclick="setOvStatus('out',this)">✕ Out</button>
     </div>
     <span id="ov-count" style="font-size:11px;color:rgba(44,31,20,0.4);margin-left:auto"></span>
   </div>
@@ -414,7 +340,6 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
           <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap">Category</th>
           <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Variant</th>
           <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Color / Pattern</th>
-          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Size</th>
           <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Unit</th>
           <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Balance</th>
           <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Status</th>
@@ -428,19 +353,11 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 <!-- COSTS PAGE -->
 <div class="page" id="page-costs">
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <input class="form-control" id="cost-search" placeholder="&#128269; Search material..." oninput="renderCostsTab()" style="max-width:240px">
+    <input class="form-control" id="cost-search" placeholder="🔍 Search material..." oninput="renderCostsTab()" style="max-width:240px">
     <select class="form-control" id="cost-cat-filter" onchange="renderCostsTab()" style="width:auto">
       <option value="">All Categories</option>
       <option value="Cotton Canvas">Cotton Canvas</option>
       <option value="Jute Fabric">Jute Fabric</option>
-      <option value="Lining">Lining</option>
-      <option value="Zippers">Zippers</option>
-      <option value="Lace">Lace</option>
-      <option value="Webbing">Webbing</option>
-      <option value="Handles">Handles</option>
-      <option value="Threads">Threads</option>
-      <option value="Hardware">Hardware</option>
-      <option value="Machine Items">Machine Items</option>
     </select>
   </div>
   <div id="costs-content"></div>
@@ -448,40 +365,15 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 
 <div class="toast" id="toast"></div>
 
-<!-- REGISTER PAGE -->
-<div class="page" id="page-register">
-  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <input class="form-control" id="reg-search" placeholder="&#128269; Search variant, color, pattern..." oninput="renderRegister()" style="max-width:260px">
-    <select class="form-control" id="reg-cat-filter" onchange="renderRegister()" style="width:auto">
-      <option value="">All Categories</option>
-      <option value="Jute Fabric">Jute Fabric</option>
-      <option value="Cotton Canvas">Cotton Canvas</option>
-      <option value="Juco Fabric">Juco Fabric</option>
-      <option value="Kadhi Fabric">Kadhi Fabric</option>
-      <option value="Lining">Lining</option>
-      <option value="Kalamkari / Designer">Kalamkari / Designer</option>
-      <option value="Zippers">Zippers</option>
-      <option value="Lace">Lace</option>
-      <option value="Webbing">Webbing</option>
-      <option value="Handles">Handles</option>
-      <option value="Webbing">Webbing</option>
-      <option value="Threads">Threads</option>
-      <option value="Hardware">Hardware</option>
-      <option value="Machine Items">Machine Items</option>
-    </select>
-    <span style="font-size:11px;color:rgba(44,31,20,0.4);margin-left:4px">Read-only view &middot; Use Stock In tab to add entries</span>
-    <button onclick="importFromMasterSheet()" id="btn-import-master" style="margin-left:auto;background:#6B21A8;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">&#8659; Import from Inventory Master</button>
-  </div>
-  <div id="register-content"></div>
-</div>
-
-
 <script>
 const SHEET_URL="https://script.google.com/macros/s/AKfycbxpcfocezAqlwg37_SujPuDilIyXEeve5A8Niir1vohU3pz2sytBrSIjQyX6vLmoIPN/exec";
-let materials=[], stockLog=[], logFilter='all';
+const CONFIG_URL="https://script.google.com/macros/s/AKfycbxRr3o5M_bYR3V9oZf2qMH0-Hrp13qP_PcA7h-1KddIPx6TzfMzY6KoYnTMxaa8mnSa/exec";
+let configData=null;
+let materials=[],stockLog=[],registerData=[];
+let logFilter='all',invDateFilter='all',ovStatusFilter='all';
 
 function nowLabel(){const n=new Date();return n.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+', '+n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});}
-function fmtINR(n){return'\u20b9'+(Number(n)||0).toLocaleString('en-IN');}
+function fmtINR(n){return'₹'+(Number(n)||0).toLocaleString('en-IN');}
 
 function setSyncStatus(state,msg){
   document.getElementById('sync-dot').className='sync-dot '+state;
@@ -496,7 +388,7 @@ async function sheetCall(params){
     const res=await fetch(SHEET_URL+'?'+new URLSearchParams(params).toString());
     const data=await res.json();
     if(data.error)throw new Error(data.error);
-    setSyncStatus('ok','Synced \u00b7 karmatotes@gmail.com');return data;
+    setSyncStatus('ok','Synced · karmatotes@gmail.com');return data;
   }catch(err){setSyncStatus('err','Sync failed.');console.error(err);return null;}
 }
 
@@ -506,24 +398,8 @@ async function sheetPost(body){
     const res=await fetch(SHEET_URL,{method:'POST',body:JSON.stringify(body)});
     const data=await res.json();
     if(data.error)throw new Error(data.error);
-    setSyncStatus('ok','Saved \u00b7 karmatotes@gmail.com');return data;
+    setSyncStatus('ok','Saved · karmatotes@gmail.com');return data;
   }catch(err){setSyncStatus('err','Save failed.');console.error(err);return null;}
-}
-
-async function syncRegisterToStock(){
-  const btn=document.getElementById('btn-sync-register');
-  if(btn){btn.disabled=true;btn.textContent='Syncing...';}
-  const result=await sheetPost({action:'syncRegisterToStockLevels'});
-  if(result&&result.success){
-    showToast('✓ '+result.message);
-    // Reload materials
-    const data=await sheetCall({action:'getMaterials'});
-    if(data&&data.materials)materials=data.materials;
-    renderStockLevels();renderAlertBar();
-  }else{
-    showToast('Sync failed: '+(result&&result.error?result.error:'Unknown error'));
-  }
-  if(btn){btn.disabled=false;btn.textContent='⇅ Sync from Register';}
 }
 
 async function refreshData(){
@@ -533,370 +409,64 @@ async function refreshData(){
     const [matData,logData,regData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'}),sheetCall({action:'getRegister'})]);
     if(matData&&matData.materials)materials=matData.materials;
     if(logData&&logData.stockLog)stockLog=logData.stockLog;
-    renderStockLevels();renderAlertBar();renderLog();
+    if(regData&&regData.register)registerData=regData.register;
+    renderStockLevels();renderAlertBar();renderLog();populateMaterialDropdown();
     showToast('✓ Refreshed');
   }finally{
     if(btn){btn.classList.remove('spinning');btn.disabled=false;}
   }
 }
 
-
-// ── MATERIAL REGISTER CONFIG ──────────────────────────────
-const REG_CONFIG = {
-  'Jute Fabric': {
-    unit:'Metres', fields:['variant','colorPattern','gsm'],
-    variants:['Natural (14/15 GSM)','Half-White','Oxford Jute','Colored','Printed'],
-    colorsByVariant:{
-      'Colored':['Navy Blue','Black Laminated','Brown','Mustard','Maroon','Pink','Red','Parrot Green','Green','Teal Blue','Orange','Purple','Yellow','Royal Blue','Light Green'],
-      'Printed':['Viala Jute Maroon','Viala Jute Pink','Butterfly Jute','Flower Print Jute','Gold & Black Jute','Red Flower Natural','Natural & Black Blocks','Half White & Pink Flowers','Half White & Elephant','Ajrak Hearts','Ajrak Waves','Orange Wareli','Brown Checks Jute']
-    }
-  },
-  'Cotton Canvas': {
-    unit:'Metres', fields:['colorPattern','gsm'],
-    colors:['Purple','Dark Grey','Royal Blue','Black','Navy Blue','Yellow','Red','Pink','Orange','Dark Green','Sky Blue','Marine Blue','Mustard','Honey','Pista Green','Blue','Cream','White','Rani Pink','Mehendi','Light Blue','Light Grey','Maroon','Dark Brown','Chocolate Brown','Teal Blue','Bottle Green']
-  },
-  'Juco Fabric': {
-    unit:'Metres', fields:['variant'],
-    variants:['Natural','Laminated']
-  },
-  'Kadhi Fabric': {
-    unit:'Metres', fields:['variant','gsm'],
-    variants:['Export 150 GSM','Kora 140 GSM','Fine 120 GSM','90 GSM']
-  },
-  'Lining': {
-    unit:'Metres', fields:['colorPattern','variant'],
-    variants:['Poplin','Plain'],
-    colors:['Red','Navy Blue','Light Green','Dark Green','Mustard','Pink','White','Royal Blue','Black','Cream','Yellow','Grey','Khaki','Sky Blue','Teal Blue','Dark Pink','Natural','Pista']
-  },
-  'Kalamkari / Designer': {
-    unit:'Metres', fields:['colorPattern'],
-    patterns:['Pochampally','Ajrak Hearts','Ajrak Waves','Cows Kalamkari Blue','Cows Kalamkari Black','Orange Flower Kalamkari','Kantha Work Pink','Blue with Flowers','Hand Print','Purple White Flowers','Grey Maroon Flowers','Black & White Curtains','Mustard with Mandala','Blue Flamingo','Orange Wareli']
-  },
-  'Zippers': {
-    unit:'Metres', fields:['colorPattern','size','type'],
-    colors:['Black','White','Cream','Juco','Dark Juco','Light Green','Green','Orange','Navy Blue','Light Cream','Red','Purple','Blue','Olive','Bottle Green'],
-    sizes:['No.3','No.5','No.8'],
-    types:['Standard','Pocket Zip','Trainer Zip']
-  },
-  'Lace': {
-    unit:'Metres', fields:['colorPattern','size','type'],
-    colors:['Cream','White','Baby Pink','Light Blue','Dark Blue','Blue Zari','Black with Juco','Pink with Juco','Light Green with Juco','Light Blue with Juco','Black Zari','Green Zari','Maroon Zari'],
-    sizes:['1 inch','1.5 inch'],
-    types:['Plain','Zari','With Juco']
-  },
-  'Webbing': {
-    unit:'Bundles', fields:['colorPattern','size','type'],
-    colors:['Juco','Cream','Orange','Green','Yellow','Mustard','Bottle Green','Parrot Green','Purple','Black','Light Blue','Brick','Coffee','Pink','Red','Maroon','Grey','White','Dark Blue','Navy Blue','Grape','Teal','Zig-Zag','Multicolor','Black & Juco'],
-    sizes:['1 inch','1.5 inch','2 inch'],
-    types:['Plain','Designer','Zig-Zag']
-  },
-  'Handles': {
-    unit:'Metres', fields:['type','colorPattern'],
-    types:['Cotton','Jute','Rope','Leather'],
-    colors:['Natural','Black','Brown','Cream','Navy Blue','Tan','Beige']
-  },
-  'Threads': {
-    unit:'Nos (boxes)', fields:['colorPattern'],
-    colors:['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
-  },
-  'Hardware': {
-    unit:'Nos', fields:['variant','size','finish'],
-    variants:['D-Ring','Dog Hook','Adjuster / Buckle','Rectangle Ring','Square Ring','Circle Ring','Triangle Ring','Runners','Eye Lets','Snap Button','Bag Bottom Button','Press Button','Bobbins','Bobbin Cases'],
-    sizes:['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)','Tiny (1 cm)','No.3','No.5','No.8','Big (Flat)'],
-    finishes:['Steel','Antique','Plastic']
-  },
-  'Machine Items': {
-    unit:'Nos', fields:['variant'],
-    variants:['Needles No.21','Needles No.23','Thread Cutters','Seam Rippers','Marking Chalk','Bead Pins','Black Clips','Water Tube','Teflon Shoe','Scales','Scissors','Bobbins','Bobbin Cases']
-  }
-};
-
-let registerData = [];
-
-// ── REGISTER: SWITCH TAB ─────────────────────────────────
-function switchTab(tab){
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  document.getElementById('page-'+tab).classList.add('active');
-  if(tab==='register'){loadRegister();}
-  if(tab==='overview'){renderOverviewTab();}
-  if(tab==='costs'){renderCostsTab();}
-}
-
-async function importFromMasterSheet(){
-  const btn=document.getElementById('btn-import-master');
-  if(btn){btn.disabled=true;btn.textContent='Importing...';}
-  showToast('Importing from Inventory Master sheet...');
-  const result=await sheetPost({action:'importInventoryMaster'});
-  if(result&&result.success){
-    showToast('✓ '+result.message);
-    // Reload register data
-    const data=await sheetCall({action:'getRegister'});
-    if(data&&data.register)registerData=data.register;
-    renderRegister();
-  }else{
-    showToast('Import failed: '+(result&&result.error?result.error:'Unknown error'));
-  }
-  if(btn){btn.disabled=false;btn.textContent='♙ Import from Inventory Master';}
-}
-
-async function loadRegister(){
-  const data=await sheetCall({action:'getRegister'});
-  if(data&&data.register)registerData=data.register;
-  renderRegister();
-}
-
-// ── REGISTER: RENDER ─────────────────────────────────────
-function renderRegister(){
-  const search=(document.getElementById('reg-search').value||'').toLowerCase();
-  const catFilter=document.getElementById('reg-cat-filter').value;
-  const content=document.getElementById('register-content');
-
-  // Calculate balances per unique item key
-  const balanceMap={};
-  const itemMeta={};
-  registerData.forEach(r=>{
-    const key=[r['Category'],r['Variant']||'',r['Color/Pattern']||'',r['Type']||'',r['Size']||'',r['Finish']||'',r['GSM']||''].join('|');
-    if(!balanceMap[key])balanceMap[key]=0;
-    if(!itemMeta[key])itemMeta[key]={
-      category:r['Category'],variant:r['Variant']||'',colorPattern:r['Color/Pattern']||'',
-      type:r['Type']||'',size:r['Size']||'',finish:r['Finish']||'',gsm:r['GSM']||'',unit:r['Unit']||''
-    };
-    if(String(r['Type (IN/OUT)']).toUpperCase()==='IN')balanceMap[key]+=Number(r['Qty'])||0;
-    else balanceMap[key]-=Number(r['Qty'])||0;
-  });
-
-  // Group by category
-  const categories={};
-  Object.keys(balanceMap).forEach(key=>{
-    const m=itemMeta[key];
-    if(catFilter&&m.category!==catFilter)return;
-    const label=[m.variant,m.colorPattern,m.type,m.size,m.finish,m.gsm].filter(Boolean).join(' — ');
-    if(search&&!m.category.toLowerCase().includes(search)&&!label.toLowerCase().includes(search))return;
-    if(!categories[m.category])categories[m.category]=[];
-    categories[m.category].push({key,meta:m,label,balance:balanceMap[key]});
-  });
-
-  if(!Object.keys(categories).length){
-    content.innerHTML='<div class="empty-state">No register entries yet. Click + Stock In to add.</div>';
-    return;
-  }
-
-  let html='';
-  Object.keys(categories).sort().forEach(cat=>{
-    const items=categories[cat];
-    html+='<div class="reg-category">';
-    html+='<div class="reg-cat-header"><span class="reg-cat-title">'+cat+'</span><span class="reg-cat-count">'+items.length+' variant'+(items.length!==1?'s':'')+'</span></div>';
-    html+='<div style="overflow-x:auto"><table class="reg-table"><thead><tr>';
-    html+='<th>Variant / Color / Pattern</th><th>Type</th><th>Size</th><th>Finish</th><th>GSM</th><th>Unit</th><th>Balance</th>';
-    html+='</tr></thead><tbody>';
-    items.forEach(item=>{
-      const bal=item.balance;
-      const balClass=bal<=0?'out':bal<=10?'low':'ok';
-      const m=item.meta;
-      html+='<tr>';
-      html+='<td><strong>'+(m.variant||'—')+'</strong>'+(m.colorPattern?' <span style="color:rgba(44,31,20,0.5)">'+m.colorPattern+'</span>':'')+'</td>';
-      html+='<td style="font-size:11px">'+(m.type||'—')+'</td>';
-      html+='<td style="font-size:11px">'+(m.size||'—')+'</td>';
-      html+='<td style="font-size:11px">'+(m.finish||'—')+'</td>';
-      html+='<td style="font-size:11px;font-family:monospace">'+(m.gsm?m.gsm+' GSM':'—')+'</td>';
-      html+='<td style="font-size:11px;color:rgba(44,31,20,0.4)">'+(m.unit||'')+'</td>';
-      html+='<td><span class="reg-bal '+balClass+'">'+(bal%1===0?bal:bal.toFixed(1))+'</span></td>';
-      html+='</tr>';
-    });
-    html+='</tbody></table></div></div>';
-  });
-  content.innerHTML=html;
-}
-
-// ── REGISTER MODAL ────────────────────────────────────────
-
-
-
-
-
-
-
-
-
-
-// ── OVERVIEW TAB ─────────────────────────────────────────────
-let ovStatusFilter = 'all';
-
-function setOvStatus(s, btn){
-  ovStatusFilter = s;
-  document.querySelectorAll('#page-overview .log-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOverviewTab();
-}
-
-function renderOverviewTab(){
-  const search = (document.getElementById('ov-search').value||'').toLowerCase();
-  const cat    = document.getElementById('ov-cat-filter').value;
-  const tbody  = document.getElementById('ov-tbody');
-  if(!tbody) return;
-
-  // Build balance map from registerData
-  const balMap = {};
-  const metaMap = {};
-  registerData.forEach(r => {
-    const key = [r['Category'],r['Variant']||'',r['Color/Pattern']||'',r['Size']||'',r['Finish']||'',r['Unit']||''].join('|');
-    if(!balMap[key]) { balMap[key]=0; metaMap[key]={category:r['Category'],variant:r['Variant']||'',color:r['Color/Pattern']||'',size:r['Size']||'',finish:r['Finish']||'',unit:r['Unit']||''}; }
-    balMap[key] += String(r['Type (IN/OUT)']).toUpperCase()==='IN' ? (Number(r['Qty'])||0) : -(Number(r['Qty'])||0);
-  });
-
-  const items = Object.keys(balMap).map(key => ({...metaMap[key], balance: Math.round(balMap[key]*100)/100}));
-
-  const filtered = items.filter(item => {
-    const ms = !search || [item.category,item.variant,item.color,item.size].join(' ').toLowerCase().includes(search);
-    const cs = !cat || item.category === cat;
-    const bal = item.balance;
-    const ss = ovStatusFilter==='all' ? true :
-               ovStatusFilter==='ok'  ? bal > 10 :
-               ovStatusFilter==='low' ? bal > 0 && bal <= 10 :
-               ovStatusFilter==='out' ? bal <= 0 : true;
-    return ms && cs && ss;
-  }).sort((a,b) => a.category.localeCompare(b.category) || (a.color||a.variant).localeCompare(b.color||b.variant));
-
-  const countEl = document.getElementById('ov-count');
-  if(countEl) countEl.textContent = filtered.length + ' variants';
-
-  tbody.innerHTML = '';
-  if(!filtered.length){
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No variants found</td></tr>';
-    return;
-  }
-
-  let lastCat = '';
-  filtered.forEach(item => {
-    const bal = item.balance;
-    const status = bal <= 0 ? 'OUT' : bal <= 10 ? 'LOW' : 'OK';
-    const statusColor = bal <= 0 ? '#C0392B' : bal <= 10 ? '#92400E' : '#166534';
-    const statusBg = bal <= 0 ? '#FFEBEE' : bal <= 10 ? '#FFF8E1' : '#E8F5E9';
-    const rowBg = item.category !== lastCat ? '' : '';
-    lastCat = item.category;
-
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid var(--border)';
-    tr.innerHTML = `
-      <td style="padding:8px 12px;font-size:11px;font-weight:600;color:#1565C0">${item.category}</td>
-      <td style="padding:8px 12px;font-size:12px">${item.variant||'—'}</td>
-      <td style="padding:8px 12px;font-size:12px;font-weight:500">${item.color||'—'}</td>
-      <td style="padding:8px 12px;font-size:11px;color:rgba(44,31,20,0.5)">${item.size||'—'}</td>
-      <td style="padding:8px 12px;font-size:11px;color:rgba(44,31,20,0.4)">${item.unit||''}</td>
-      <td style="padding:8px 12px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;font-size:13px">${bal%1===0?bal:bal.toFixed(1)}</td>
-      <td style="padding:8px 12px;text-align:center"><span style="background:${statusBg};color:${statusColor};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${status}</span></td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-// ── COSTS TAB ────────────────────────────────────────────────
-function renderCostsTab(){
-  const search = (document.getElementById('cost-search').value||'').toLowerCase();
-  const cat    = document.getElementById('cost-cat-filter').value;
-  const content = document.getElementById('costs-content');
-  if(!content) return;
-
-  // Get all stock-in entries with rates from registerData
-  const inEntries = registerData.filter(r =>
-    String(r['Type (IN/OUT)']).toUpperCase() === 'IN' &&
-    (Number(r['Rate'])||0) > 0
-  );
-
-  // Group by item key, find latest rate per item
-  const latestRateMap = {};
-  const historyMap = {};
-  inEntries.forEach(r => {
-    const key = [r['Category'],r['Variant']||'',r['Color/Pattern']||'',r['Size']||''].join('|');
-    if(!historyMap[key]) historyMap[key] = [];
-    historyMap[key].push({
-      date: r['Date']||'', supplier: r['Supplier']||'',
-      qty: Number(r['Qty'])||0, rate: Number(r['Rate'])||0,
-      unit: r['Unit']||'', category: r['Category'],
-      color: r['Color/Pattern']||'', variant: r['Variant']||'',
-      size: r['Size']||''
-    });
-  });
-
-  // Find latest rate per item
-  Object.keys(historyMap).forEach(key => {
-    const entries = historyMap[key].sort((a,b) => new Date(b.date)-new Date(a.date));
-    latestRateMap[key] = entries[0];
-  });
-
-  // Filter
-  const keys = Object.keys(latestRateMap).filter(key => {
-    const m = latestRateMap[key];
-    const ms = !search || [m.category,m.color,m.variant,m.size].join(' ').toLowerCase().includes(search);
-    const cs = !cat || m.category === cat;
-    return ms && cs;
-  }).sort();
-
-  if(!keys.length){
-    content.innerHTML = '<div class="empty-state">No cost data yet. Rates will appear after stock-in entries with unit costs.</div>';
-    return;
-  }
-
-  // Group by category
-  const byCat = {};
-  keys.forEach(key => {
-    const m = latestRateMap[key];
-    if(!byCat[m.category]) byCat[m.category] = [];
-    byCat[m.category].push({key, latest: m, history: historyMap[key]});
-  });
-
-  let html = '';
-  Object.keys(byCat).sort().forEach(catName => {
-    html += `<div style="background:var(--surface);border-radius:12px;border:1px solid var(--border);margin-bottom:16px;overflow:hidden">
-      <div style="padding:10px 16px;background:#1565C0;color:#fff;font-size:13px;font-weight:700">${catName}</div>`;
-
-    byCat[catName].forEach(({key, latest, history}) => {
-      const label = [latest.variant, latest.color, latest.size].filter(Boolean).join(' — ') || latest.color || '—';
-      html += `<div style="border-bottom:1px solid var(--border);padding:12px 16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-size:13px;font-weight:600;color:var(--bark)">${label}</div>
-          <div style="font-size:16px;font-weight:700;color:#1565C0">&#8377;${latest.rate} <span style="font-size:11px;font-weight:400;color:rgba(44,31,20,0.4)">per ${latest.unit}</span></div>
-        </div>
-        <div style="font-size:11px;color:rgba(44,31,20,0.4);margin-bottom:8px">Last purchased: ${latest.date||'—'} &middot; ${latest.supplier||'—'}</div>`;
-
-      if(history.length > 1){
-        html += `<details style="margin-top:4px">
-          <summary style="font-size:11px;color:#1565C0;cursor:pointer;font-weight:600">View price history (${history.length} entries)</summary>
-          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
-            <tr style="background:#EFF6FF"><th style="padding:4px 8px;text-align:left">Date</th><th style="padding:4px 8px;text-align:left">Supplier</th><th style="padding:4px 8px;text-align:right">Qty</th><th style="padding:4px 8px;text-align:right">Rate</th><th style="padding:4px 8px;text-align:right">Total</th></tr>`;
-        history.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(h => {
-          html += `<tr style="border-bottom:1px solid #EFF6FF"><td style="padding:4px 8px">${h.date||'—'}</td><td style="padding:4px 8px">${h.supplier||'—'}</td><td style="padding:4px 8px;text-align:right">${h.qty} ${h.unit}</td><td style="padding:4px 8px;text-align:right;font-weight:600">&#8377;${h.rate}</td><td style="padding:4px 8px;text-align:right">&#8377;${Math.round(h.qty*h.rate)}</td></tr>`;
-        });
-        html += `</table></details>`;
-      }
-      html += `</div>`;
-    });
-    html += `</div>`;
-  });
-  content.innerHTML = html;
-}
-
 async function initApp(){
   document.getElementById('live-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const cfgData=await fetch(`${CONFIG_URL}?action=getConfig`).then(r=>r.json()).catch(err=>{console.error('Config load failed',err);return null;});
+  if(cfgData)configData=cfgData;
   const [matData,logData,regData]=await Promise.all([sheetCall({action:'getMaterials'}),sheetCall({action:'getStockLog'}),sheetCall({action:'getRegister'})]);
   document.getElementById('loading-overlay').classList.add('hidden');
   if(matData&&matData.materials)materials=matData.materials;
   if(logData&&logData.stockLog)stockLog=logData.stockLog;
   if(regData&&regData.register)registerData=regData.register;
-  renderStockLevels();renderAlertBar();renderLog();
+  renderStockLevels();renderAlertBar();renderLog();populateMaterialDropdown();
 }
 
-// switchTab handled by register block above
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='register')renderRegister();
+  if(tab==='overview')renderOverviewTab();
+  if(tab==='costs')renderCostsTab();
+}
+
+function populateMaterialDropdown(){
+  const sel=document.getElementById('si-material');
+  if(!sel)return;
+  // Clear non-optgroup options but keep optgroups
+  const optgroups=sel.querySelectorAll('optgroup');
+  // Re-populate from config - APPEND only
+  if(configData&&configData.materials){
+    const fabricGroup=Array.from(optgroups).find(og=>og.label.includes('Fabrics'));
+    configData.materials.forEach(m=>{
+      if(fabricGroup){
+        const exists=Array.from(fabricGroup.querySelectorAll('option')).some(o=>o.value===m.name);
+        if(!exists){
+          const opt=document.createElement('option');
+          opt.value=m.name;
+          opt.textContent=m.name;
+          fabricGroup.appendChild(opt);
+        }
+      }
+    });
+  }
+}
 
 function renderStockLevels(){
   const grid=document.getElementById('stock-grid');
-  if(!materials.length){grid.innerHTML='<div class="empty-state">No materials found. Run initSheets in Apps Script first.</div>';return;}
+  if(!materials.length){grid.innerHTML='<div class="empty-state">No materials found.</div>';return;}
   grid.innerHTML='';
   materials.forEach(m=>{
     const stock=Number(m['Current Stock'])||0;
-    const rolls=Number(m['Rolls'])||0;
-    const mpr=Number(m['Metres Per Roll'])||0;
     const threshold=Number(m['Low Stock Threshold'])||0;
     const unit=String(m['Unit']||'');
     const name=String(m['Material']||'');
@@ -909,7 +479,6 @@ function renderStockLevels(){
       +'<div class="stock-mat-name">'+name+'</div>'
       +'<div class="stock-unit-label">'+unit+'</div>'
       +'<div class="stock-val">'+(stock%1===0?stock:stock.toFixed(1))+'</div>'
-      +(rolls>0?'<div style="font-size:11px;color:rgba(44,31,20,0.45);margin-top:2px">'+Math.round(rolls*100)/100+' rolls'+(mpr>0?' · '+mpr+'m/roll':'')+'</div>':'')
       +'<div class="stock-threshold">Min: '+threshold+' '+unit+'</div>'
       +'<div class="stock-bar-wrap"><div class="stock-bar" style="width:'+Math.min(pct,100)+'%"></div></div>';
     grid.appendChild(card);
@@ -923,49 +492,16 @@ function renderAlertBar(){
     const t=Number(m['Low Stock Threshold'])||0;
     return s<=t;
   });
-  if(!lowItems.length){bar.className='alert-bar clear';bar.innerHTML='&#9989; All stock levels healthy. No alerts.';}
+  if(!lowItems.length){bar.className='alert-bar clear';bar.innerHTML='✓ All stock levels healthy. No alerts.';}
   else{
     bar.className='alert-bar has-alerts';
     const outItems=lowItems.filter(m=>Number(m['Current Stock'])===0);
     const warnItems=lowItems.filter(m=>Number(m['Current Stock'])>0);
     let msg='';
-    if(outItems.length)msg+='&#128308; OUT OF STOCK: '+outItems.map(m=>m['Material']).join(', ')+'&nbsp;&nbsp;';
-    if(warnItems.length)msg+='&#9888;&#65039; LOW: '+warnItems.map(m=>m['Material']+' ('+m['Current Stock']+' '+m['Unit']+')').join(', ');
+    if(outItems.length)msg+='🔴 OUT OF STOCK: '+outItems.map(m=>m['Material']).join(', ')+'   ';
+    if(warnItems.length)msg+='⚠️ LOW: '+warnItems.map(m=>m['Material']+' ('+m['Current Stock']+' '+m['Unit']+')').join(', ');
     bar.innerHTML=msg;
   }
-}
-
-let currentStockInType='stockin';
-
-function setStockInType(type,btn){
-  currentStockInType=type;
-  document.querySelectorAll('#page-stockin .log-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const adjWrap=document.getElementById('si-adj-reason-wrap');
-  const title=document.getElementById('si-form-title');
-  const sub=document.getElementById('si-form-sub');
-  const submitBtn=document.getElementById('si-submit');
-  if(type==='stockin'){
-    adjWrap.style.display='none';
-    title.textContent='Stock In — New Material Received';
-    sub.textContent='Enter supplier details · Stock level updates automatically';
-    if(submitBtn)submitBtn.textContent='Log Stock In';
-  }else if(type==='adj-plus'){
-    adjWrap.style.display='block';
-    title.textContent='Stock Adjustment — Add';
-    sub.textContent='Correct an undercount or add opening stock';
-    if(submitBtn)submitBtn.textContent='&#43; Save Adjustment (Add)';
-  }else{
-    adjWrap.style.display='block';
-    title.textContent='Stock Adjustment — Remove';
-    sub.textContent='Correct an overcount or remove damaged/wasted stock';
-    if(submitBtn)submitBtn.textContent='− Save Adjustment (Remove)';
-  }
-  const reasonSel=document.getElementById('si-adj-reason');
-  if(reasonSel)reasonSel.onchange=function(){
-    const custom=document.getElementById('si-adj-reason-custom');
-    if(custom)custom.style.display=this.value==='Other'?'block':'none';
-  };
 }
 
 function onMaterialChange(){
@@ -983,289 +519,28 @@ function onMaterialChange(){
       hint.textContent='Last purchase: '+fmtINR(lastEntry['Unit Cost'])+' per '+unit;
       document.getElementById('si-unit-cost').value=Number(lastEntry['Unit Cost'])||'';
     }else{
-      hint.textContent='Unit: '+(METRES_MATERIALS.includes(matName)?'Metres':'Nos (numbers)');
+      hint.textContent='Unit: '+unit;
     }
   }else{display.style.display='none';hint.textContent='';}
   updateTotal();updateQtyHint();
-  // Show non-fabric sub-fields
-  const isNonFabric=!INV_FABRICS_WITH_DETAIL.includes(matName)&&matName!=='';
-  const nfWrap=document.getElementById('si-nonfabric-detail');
-  if(isNonFabric&&NON_FABRIC_CONFIG[matName]){
-    showNonFabricSubFields(matName);
-  }else if(nfWrap){
-    nfWrap.style.display='none';
-    nfWrap.innerHTML='';
-  }
-  // Show fabric details for ALL fabric materials (Rolls, Panna for all; Variation/GSM for specific ones)
-  const detailWrap=document.getElementById('si-fabric-detail');
-  const isAnyFabric=METRES_MATERIALS.filter(m=>!['Handles','Zippers','Lace','Webbing'].includes(m)).includes(matName);
-  if(isAnyFabric){
-    detailWrap.style.display='flex';
-    const cfg=INV_FABRIC_CONFIG[matName];
-    const varSel=document.getElementById('si-variation');
-    varSel.innerHTML='<option value="">Select variation…</option>';
-    if(cfg&&cfg.variations)cfg.variations.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;varSel.appendChild(o);});
-    const gsmSel=document.getElementById('si-gsm');
-    gsmSel.innerHTML='<option value="">Select GSM…</option>';
-    if(cfg&&cfg.gsm&&cfg.gsm.length){
-      cfg.gsm.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g+' GSM';gsmSel.appendChild(o);});
-      const custom=document.createElement('option');custom.value='custom';custom.textContent='Custom…';gsmSel.appendChild(custom);
-    }
-  }else{
-    detailWrap.style.display='none';
-    const varSel=document.getElementById('si-variation');if(varSel)varSel.innerHTML='<option value="">Select variation...</option>';
-    const gsmSel=document.getElementById('si-gsm');if(gsmSel)gsmSel.innerHTML='<option value="">Select GSM...</option>';
-  }
-}
-
-const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Zippers','Lace','Webbing'];
-const INV_FABRIC_CONFIG={
-  'Jute Fabric':   {variations:['Half-White','Natural','Oxford Jute','Printed','Colored'],gsm:['14/15','13/13','12/12']},
-  'Cotton Canvas': {variations:['Natural','Colored','Laminated'],           gsm:['225','300','310','340','400','490','570']},
-  'Juco Fabric':   {variations:['Laminated','Non-Laminated'],               gsm:[]},
-  'Kadhi Fabric':  {variations:['Natural'],                                 gsm:['90','120','135','150']},
-};
-const INV_FABRICS_WITH_DETAIL=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric'];
-
-function toggleInvCustomGSM(){
-  const sel=document.getElementById('si-gsm');
-  const custom=document.getElementById('si-gsm-custom');
-  if(!sel||!custom)return;
-  custom.style.display=sel.value==='custom'?'block':'none';
-}
-
-function calcMetresPerRoll(){
-  const rolls=Number(document.getElementById('si-rolls')?document.getElementById('si-rolls').value:0)||0;
-  const qty=Number(document.getElementById('si-qty')?document.getElementById('si-qty').value:0)||0;
-  const display=document.getElementById('si-mpr-display');
-  if(rolls>0&&qty>0&&display){
-    const mpr=Math.round((qty/rolls)*100)/100;
-    display.style.display='block';
-    display.textContent='→ '+mpr+' m per roll';
-  }else if(display){
-    display.style.display='none';
-  }
-}
-
-function toggleInvPannaCustom(){
-  const sel=document.getElementById('si-panna');
-  const custom=document.getElementById('si-panna-custom');
-  if(!sel||!custom)return;
-  custom.style.display=sel.value==='Other'?'inline-block':'none';
-}
-
-function getInvPanna(){
-  const sel=document.getElementById('si-panna');
-  const custom=document.getElementById('si-panna-custom');
-  if(!sel)return'';
-  return sel.value==='Other'?(custom?custom.value.trim()+' inch':''):sel.value;
-}
-
-function getInvRolls(){
-  const el=document.getElementById('si-rolls');
-  return el?Number(el.value)||0:0;
-}
-
-function getInvGSM(){
-  const sel=document.getElementById('si-gsm');
-  const custom=document.getElementById('si-gsm-custom');
-  if(!sel)return'';
-  return sel.value==='custom'?(custom?custom.value:''):sel.value;
-}
-function getMaterialUnit(name){return METRES_MATERIALS.includes(name)?'m':'nos';}
-
-
-const INV_JUTE_COLORS=['Navy Blue','Black Laminated','Brown','Mustard','Maroon','Pink','Red','Parrot Green','Green','Teal Blue','Orange','Purple','Yellow','Royal Blue','Light Green'];
-const INV_JUTE_PATTERNS=['Viala Jute Maroon','Viala Jute Pink','Butterfly Jute','Flower Print Jute','Gold & Black Jute','Red Flower Natural','Natural & Black Blocks','Half White & Pink Flowers','Ajrak Hearts','Ajrak Waves','Orange Wareli','Brown Checks Jute'];
-const INV_CANVAS_COLORS=['Purple','Dark Grey','Royal Blue','Black','Navy Blue','Yellow','Red','Pink','Orange','Dark Green','Sky Blue','Marine Blue','Mustard','Honey','Pista Green','Blue','Cream','White','Rani Pink','Mehendi','Light Blue','Light Grey','Maroon','Dark Brown','Chocolate Brown'];
-const INV_LINING_COLORS=['Red','Navy Blue','Light Green','Dark Green','Mustard','Pink','White','Royal Blue','Black','Cream','Yellow','Grey','Khaki','Sky Blue','Teal Blue','Dark Pink','Natural','Pista'];
-
-function onInvVariationChange(){
-  const cat=document.getElementById('si-material').value;
-  const variation=document.getElementById('si-variation').value;
-  const wrap=document.getElementById('si-color-wrap');
-  const label=document.getElementById('si-color-label');
-  const sel=document.getElementById('si-color');
-  if(!wrap||!sel)return;
-
-  // Oxford Jute — no color or GSM needed
-  if(variation==='Oxford Jute'){
-    wrap.style.display='none';
-    const gsmSel=document.getElementById('si-gsm');
-    if(gsmSel){gsmSel.innerHTML='<option value="">N/A — Oxford Jute</option>';}
-    return;
-  }
-
-  let colors=null;
-  let lbl='Color';
-  if(cat==='Jute Fabric'){
-    if(variation==='Colored'){colors=INV_JUTE_COLORS;}
-    else if(variation==='Printed'){colors=INV_JUTE_PATTERNS;lbl='Pattern Name';}
-  }else if(cat==='Cotton Canvas'&&variation==='Colored'){colors=INV_CANVAS_COLORS;}
-  else if(cat==='Lining'){colors=INV_LINING_COLORS;}
-
-  if(colors){
-    wrap.style.display='block';
-    if(label)label.textContent=lbl;
-    sel.innerHTML='<option value="">Select '+lbl.toLowerCase()+'...</option>';
-    colors.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
-    const other=document.createElement('option');other.value='Other';other.textContent='Other (type below)';sel.appendChild(other);
-  }else{
-    wrap.style.display='none';
-  }
-}
-
-function toggleInvCustomColor(){
-  const sel=document.getElementById('si-color');
-  const custom=document.getElementById('si-color-custom');
-  if(!sel||!custom)return;
-  custom.style.display=sel.value==='Other'?'block':'none';
-}
-
-function getInvColorValue(){
-  const sel=document.getElementById('si-color');
-  const custom=document.getElementById('si-color-custom');
-  if(!sel)return'';
-  return sel.value==='Other'?(custom?custom.value:''):sel.value;
-}
-
-
-// ── NON-FABRIC MATERIAL CONFIG ────────────────────────────
-const NON_FABRIC_CONFIG = {
-  'Zippers': {
-    fields: ['color','number'],
-    colors: ['Black','White','Cream','Juco','Dark Juco','Light Green','Green','Orange','Navy Blue','Light Cream','Red','Purple','Blue','Olive','Bottle Green','Maroon','Teal','Grey'],
-    numbers: ['No.3','No.5','No.8']
-  },
-  'Lace': {
-    fields: ['color','size','type'],
-    colors: ['Cream','White','Baby Pink','Light Blue','Dark Blue','Blue Zari','Black with Juco','Pink with Juco','Light Green with Juco','Light Blue with Juco','Black Zari','Green Zari','Maroon Zari','Gold Zari','Silver Zari'],
-    sizes: ['1 inch','1.5 inch','2 inch'],
-    types: ['Plain','Zari','With Juco','Cotton']
-  },
-  'Webbing': {
-    fields: ['color','width','type'],
-    colors: ['Juco','Cream','Orange','Green','Yellow','Mustard','Bottle Green','Parrot Green','Purple','Black','Light Blue','Brick','Coffee','Pink','Red','Maroon','Grey','White','Dark Blue','Navy Blue','Grape','Teal','Zig-Zag','Multicolor','Black & Juco'],
-    widths: ['1 inch','1.5 inch','2 inch'],
-    types: ['Plain','Designer','Zig-Zag']
-  },
-  'Handles': {
-    fields: ['type','color'],
-    types: ['Cotton','Jute','Rope','Leather','Nylon','Chain'],
-    colors: ['Natural','Black','Brown','Cream','Navy Blue','Tan','Beige','White','Red','Green','Blue']
-  },
-  'Runners': {
-    fields: ['number','finish'],
-    numbers: ['No.3','No.5','No.8'],
-    finishes: ['Steel','Antique','Plastic']
-  },
-  'Dog Hooks': {
-    fields: ['size','finish'],
-    sizes: ['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)'],
-    finishes: ['Steel','Antique']
-  },
-  'D-Ring': {
-    fields: ['size','finish'],
-    sizes: ['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)','Tiny (1 cm)'],
-    finishes: ['Steel','Antique']
-  },
-  'Buckles': {
-    fields: ['size','finish'],
-    sizes: ['Big (1.5 inch)','Medium (1 inch)','Small (0.5 inch)'],
-    finishes: ['Steel','Antique','Plastic']
-  },
-  'Snap Magnetic Button': {
-    fields: ['size','finish'],
-    sizes: ['Big','Medium','Small'],
-    finishes: ['Steel','Antique','Gold','Gunmetal']
-  },
-  'Highlight': {fields: []},
-  'Reveat': {fields: []},
-  'Threads': {
-    fields: ['color'],
-    colors: ['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
-  },
-  'Threads': {
-    fields: ['color'],
-    colors: ['Cream','Black','Light Blue','Red','Purple','Light Green','Bottle Green','Maroon','Blue Dark','Navy Blue','Brown','White','Yellow','Parrot Green','Juco Colour','Dark Pink','Orange','Baby Pink','Grey','Teal','GrapeVine','Mustard','Honey','Thin Cream']
-  },
-  'Packaging Bags': {fields: []},
-  'Packaging Boxes': {fields: []}
-};
-
-function buildSubField(labelText, id, options, withOther=true){
-  let html='<div class="form-group" style="margin-bottom:8px">';
-  html+='<label style="display:block;font-size:11px;font-weight:600;color:rgba(44,31,20,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px">'+labelText+'</label>';
-  html+='<select class="form-control" id="'+id+'" onchange="checkNonFabricOther(this.id)" style="margin-bottom:0">';
-  html+='<option value="">Select '+labelText.toLowerCase()+'...</option>';
-  options.forEach(o=>html+='<option value="'+o+'">'+o+'</option>');
-  if(withOther)html+='<option value="Other">Other (type below)</option>';
-  html+='</select>';
-  html+='<input class="form-control" id="'+id+'-custom" placeholder="Enter '+labelText.toLowerCase()+'..." style="display:none;margin-top:6px">';
-  html+='</div>';
-  return html;
-}
-
-function checkNonFabricOther(el){
-  const selectId=typeof el==='string'?el:el.id;
-  const sel=document.getElementById(selectId);
-  const custom=document.getElementById(selectId+'-custom');
-  if(!sel||!custom)return;
-  custom.style.display=sel.value==='Other'?'block':'none';
-}
-
-function getNonFabricFieldValue(id){
-  const sel=document.getElementById(id);
-  const custom=document.getElementById(id+'-custom');
-  if(!sel)return'';
-  return sel.value==='Other'?(custom?custom.value.trim():''):sel.value;
-}
-
-function showNonFabricSubFields(matName){
-  const wrap=document.getElementById('si-nonfabric-detail');
-  if(!wrap)return;
-  const cfg=NON_FABRIC_CONFIG[matName];
-  if(!cfg||cfg.fields.length===0){wrap.style.display='none';return;}
-  let html='';
-  cfg.fields.forEach(field=>{
-    if(field==='color')html+=buildSubField('Color','si-nf-color',cfg.colors||[]);
-    else if(field==='number')html+=buildSubField('Number','si-nf-number',cfg.numbers||[],false);
-    else if(field==='size')html+=buildSubField('Size','si-nf-size',cfg.sizes||[]);
-    else if(field==='finish')html+=buildSubField('Finish','si-nf-finish',cfg.finishes||[],false);
-    else if(field==='type')html+=buildSubField('Type','si-nf-type',cfg.types||[]);
-    else if(field==='width')html+=buildSubField('Width','si-nf-width',cfg.widths||[],false);
-  });
-  wrap.innerHTML=html;
-  wrap.style.display='block';
-}
-
-function getNonFabricDetails(){
-  return{
-    color:   getNonFabricFieldValue('si-nf-color'),
-    number:  getNonFabricFieldValue('si-nf-number'),
-    size:    getNonFabricFieldValue('si-nf-size'),
-    finish:  getNonFabricFieldValue('si-nf-finish'),
-    type:    getNonFabricFieldValue('si-nf-type'),
-    width:   getNonFabricFieldValue('si-nf-width'),
-  };
 }
 
 function updateTotal(){
   const qty=Number(document.getElementById('si-qty').value)||0;
   const cost=Number(document.getElementById('si-unit-cost').value)||0;
   const matName=document.getElementById('si-material').value;
-  const unit=getMaterialUnit(matName);
+  const mat=materials.find(m=>m['Material']===matName);
+  const unit=mat?mat['Unit']:'';
   const el=document.getElementById('si-total-display');
-  if(qty&&cost){el.classList.add('visible');el.textContent='Total: '+fmtINR(qty*cost)+' ('+qty+' '+unit+' x '+fmtINR(cost)+'/'+unit+')';}
+  if(qty&&cost){el.classList.add('visible');el.textContent='Total: '+fmtINR(qty*cost)+' ('+qty+' '+unit+' × '+fmtINR(cost)+'/'+unit+')';}
   else el.classList.remove('visible');
 }
 
 function updateQtyHint(){
   const matName=document.getElementById('si-material').value;
-  if(!matName)return;
-  const isMetres=METRES_MATERIALS.includes(matName);
+  const METRES=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Webbing','Zippers','Lace'];
+  const isMetres=METRES.includes(matName);
   document.getElementById('si-qty').step=isMetres?'0.1':'1';
-  document.getElementById('si-qty').placeholder=isMetres?'e.g. 50':'e.g. 100';
 }
 
 async function submitStockIn(){
@@ -1281,24 +556,9 @@ async function submitStockIn(){
   const unit=mat?mat['Unit']:'';
   const btn=document.getElementById('si-submit');
   btn.disabled=true;btn.textContent='Saving...';
-  const variation=document.getElementById('si-variation')?document.getElementById('si-variation').value||'':'';
-  const nfDetails=getNonFabricDetails();
-  const colorPattern=getInvColorValue();
-  const gsm=getInvGSM();
-  const adjReason=document.getElementById('si-adj-reason')?document.getElementById('si-adj-reason').value:'';
-  const adjCustom=document.getElementById('si-adj-reason-custom')?document.getElementById('si-adj-reason-custom').value:'';
-  const finalReason=adjReason==='Other'?adjCustom:adjReason;
-  const finalQty=currentStockInType==='adj-minus'?-Math.abs(qty):Math.abs(qty);
-  const entryType=currentStockInType==='stockin'?'IN':'ADJ';
   const result=await sheetPost({
-    action:'stockIn',material,qty:finalQty,unitCost,unit,supplier,
-    variation:variation||(nfDetails.color?'':'')||nfDetails.number||nfDetails.size||'',
-    colorPattern:colorPattern||nfDetails.color||'',
-    size:nfDetails.size||'',
-    finish:nfDetails.finish||'',
-    type:nfDetails.type||nfDetails.width||'',
-    gsm,rolls,metresPerRoll:(rolls>0&&finalQty>0?Math.round((Math.abs(finalQty)/rolls)*100)/100:0),panna,entryType,
-    reference:finalReason||(document.getElementById('si-reference').value||''),
+    action:'stockIn',material,qty,unitCost,unit,supplier,
+    reference:document.getElementById('si-reference').value||'',
     date:document.getElementById('si-date').value||''
   });
   if(result&&result.success){
@@ -1308,14 +568,13 @@ async function submitStockIn(){
     if(logData&&logData.stockLog)stockLog=logData.stockLog;
     document.getElementById('stockin-form-body').style.display='none';
     const ss=document.getElementById('stockin-success');ss.classList.add('visible');
-    document.getElementById('si-success-title').textContent=(currentStockInType==='stockin'?qty+' '+unit+' of '+material+' added':(Math.abs(qty)+' '+unit+' of '+material+(currentStockInType==='adj-plus'?' adjusted (+)':' adjusted (-)')));
-    const rollsVal=getInvRolls();const pannaVal=getInvPanna();
-    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(Math.abs(qty)*unitCost)+(rollsVal?' · '+rollsVal+' rolls':'')+(pannaVal?' · Panna: '+pannaVal:'')+' · Stock updated';
+    document.getElementById('si-success-title').textContent=qty+' '+unit+' of '+material+' added';
+    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(qty*unitCost)+' · Stock updated';
     showToast('Stock updated: '+material+' +'+qty+' '+unit);
-    renderStockLevels();renderAlertBar();
+    renderStockLevels();renderAlertBar();populateMaterialDropdown();
   }else{
     showToast('Save failed. Try again.');
-    btn.disabled=false;btn.textContent='Log Stock In';
+    btn.disabled=false;btn.textContent='✓ Log Stock In';
   }
 }
 
@@ -1323,33 +582,13 @@ function resetStockIn(){
   document.getElementById('stockin-form-body').style.display='block';
   document.getElementById('stockin-success').classList.remove('visible');
   document.getElementById('si-submit').disabled=false;
-  document.getElementById('si-submit').textContent='Log Stock In';
+  document.getElementById('si-submit').textContent='✓ Log Stock In';
   ['si-material','si-qty','si-unit-cost','si-supplier','si-reference','si-date'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('current-stock-display').style.display='none';
-  document.getElementById('si-fabric-detail').style.display='none';
-  if(document.getElementById('si-variation'))document.getElementById('si-variation').value='';
-  if(document.getElementById('si-gsm'))document.getElementById('si-gsm').value='';
-  if(document.getElementById('si-gsm-custom'))document.getElementById('si-gsm-custom').value='';
-  if(document.getElementById('si-rolls'))document.getElementById('si-rolls').value='';
-  if(document.getElementById('si-mpr-display'))document.getElementById('si-mpr-display').style.display='none';
-  if(document.getElementById('si-panna'))document.getElementById('si-panna').value='';
-  if(document.getElementById('si-panna-custom')){document.getElementById('si-panna-custom').value='';document.getElementById('si-panna-custom').style.display='none';}
-  const qtyEl=document.getElementById('si-qty');if(qtyEl)qtyEl.style.background='';
-  const siColorWrap=document.getElementById('si-color-wrap');
-  if(siColorWrap)siColorWrap.style.display='none';
-  if(document.getElementById('si-color'))document.getElementById('si-color').value='';
-  if(document.getElementById('si-color-custom')){document.getElementById('si-color-custom').value='';document.getElementById('si-color-custom').style.display='none';}
-  const nfWrap=document.getElementById('si-nonfabric-detail');
-  if(nfWrap){nfWrap.style.display='none';nfWrap.innerHTML='';}
-  document.getElementById('si-total-display').classList.remove('visible');
   document.getElementById('si-unit-hint').textContent='';
-  currentStockInType='stockin';
-  setStockInType('stockin',document.getElementById('sit-stockin'));
 }
-
-let invDateFilter='all';
 
 function setInvDateFilter(f,btn){
   invDateFilter=f;
@@ -1365,22 +604,11 @@ function getInvDateRange(){
   const now=new Date();
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   switch(invDateFilter){
-    case 'thisweek':{
-      const day=today.getDay();
-      const mon=new Date(today);mon.setDate(today.getDate()-(day===0?6:day-1));
-      return{from:mon,to:new Date(today.getTime()+86400000)};
-    }
-    case 'thismonth':
-      return{from:new Date(now.getFullYear(),now.getMonth(),1),to:new Date(today.getTime()+86400000)};
-    case 'lastmonth':
-      return{from:new Date(now.getFullYear(),now.getMonth()-1,1),to:new Date(now.getFullYear(),now.getMonth(),1)};
-    case 'thisyear':
-      return{from:new Date(now.getFullYear(),0,1),to:new Date(today.getTime()+86400000)};
-    case 'custom':{
-      const from=document.getElementById('df-from').value;
-      const to=document.getElementById('df-to').value;
-      return{from:from?new Date(from):null,to:to?new Date(new Date(to).getTime()+86400000):null};
-    }
+    case 'thisweek':{const day=today.getDay();const mon=new Date(today);mon.setDate(today.getDate()-(day===0?6:day-1));return{from:mon,to:new Date(today.getTime()+86400000)};}
+    case 'thismonth':return{from:new Date(now.getFullYear(),now.getMonth(),1),to:new Date(today.getTime()+86400000)};
+    case 'lastmonth':return{from:new Date(now.getFullYear(),now.getMonth()-1,1),to:new Date(now.getFullYear(),now.getMonth(),1)};
+    case 'thisyear':return{from:new Date(now.getFullYear(),0,1),to:new Date(today.getTime()+86400000)};
+    case 'custom':{const from=document.getElementById('df-from').value;const to=document.getElementById('df-to').value;return{from:from?new Date(from):null,to:to?new Date(new Date(to).getTime()+86400000):null};}
     default:return{from:null,to:null};
   }
 }
@@ -1419,16 +647,117 @@ function renderLog(){
   filtered.forEach(l=>{
     const type=String(l['Type']).toUpperCase();
     const tr=document.createElement('tr');
-    tr.innerHTML='<td style="font-family:monospace;font-size:11px;white-space:nowrap">'+(l['Date']||'&mdash;')+'</td>'
+    tr.innerHTML='<td style="font-family:monospace;font-size:11px;white-space:nowrap">'+(l['Date']||'—')+'</td>'
       +'<td><span class="type-badge '+(type==='IN'?'type-in':'type-out')+'">'+(type==='IN'?'IN':'OUT')+'</span></td>'
-      +'<td style="font-weight:500">'+(l['Material']||'&mdash;')+'</td>'
+      +'<td style="font-weight:500">'+(l['Material']||'—')+'</td>'
       +'<td style="font-family:monospace;font-weight:600">'+(l['Qty']||0)+'</td>'
-      +'<td style="font-size:11px">'+(l['Order ID']?'#'+l['Order ID']+' &middot; '+(l['Client']||''):l['Supplier']||'&mdash;')+'</td>'
-      +'<td style="font-size:11px;color:rgba(44,31,20,0.6)">'+(l['Supplier']||'&mdash;')+'</td>'
-      +'<td style="font-family:monospace;font-size:11px">'+(l['Unit Cost']?fmtINR(l['Unit Cost']):'&mdash;')+'</td>'
-      +'<td style="font-family:monospace;font-size:11px;font-weight:600">'+(l['Total Cost']?fmtINR(l['Total Cost']):'&mdash;')+'</td>';
+      +'<td style="font-size:11px">'+(l['Order ID']?'#'+l['Order ID']+' · '+(l['Client']||''):l['Supplier']||'—')+'</td>'
+      +'<td style="font-size:11px;color:rgba(44,31,20,0.6)">'+(l['Supplier']||'—')+'</td>'
+      +'<td style="font-family:monospace;font-size:11px">'+(l['Unit Cost']?fmtINR(l['Unit Cost']):'—')+'</td>'
+      +'<td style="font-family:monospace;font-size:11px;font-weight:600">'+(l['Total Cost']?fmtINR(l['Total Cost']):'—')+'</td>';
     tbody.appendChild(tr);
   });
+}
+
+function renderRegister(){
+  const search=(document.getElementById('reg-search').value||'').toLowerCase();
+  const catFilter=document.getElementById('reg-cat-filter').value;
+  const content=document.getElementById('register-content');
+  const balanceMap={};
+  const itemMeta={};
+  registerData.forEach(r=>{
+    const key=[r['Category'],r['Variant']||'',r['Color/Pattern']||''].join('|');
+    if(!balanceMap[key])balanceMap[key]=0;
+    if(!itemMeta[key])itemMeta[key]={category:r['Category'],variant:r['Variant']||'',colorPattern:r['Color/Pattern']||'',unit:r['Unit']||''};
+    if(String(r['Type (IN/OUT)']).toUpperCase()==='IN')balanceMap[key]+=Number(r['Qty'])||0;
+    else balanceMap[key]-=Number(r['Qty'])||0;
+  });
+  const categories={};
+  Object.keys(balanceMap).forEach(key=>{
+    const m=itemMeta[key];
+    if(catFilter&&m.category!==catFilter)return;
+    const label=[m.variant,m.colorPattern].filter(Boolean).join(' — ');
+    if(search&&!m.category.toLowerCase().includes(search)&&!label.toLowerCase().includes(search))return;
+    if(!categories[m.category])categories[m.category]=[];
+    categories[m.category].push({key,meta:m,label,balance:balanceMap[key]});
+  });
+  if(!Object.keys(categories).length){content.innerHTML='<div class="empty-state">No register entries yet.</div>';return;}
+  let html='';
+  Object.keys(categories).sort().forEach(cat=>{
+    const items=categories[cat];
+    html+='<div class="reg-category"><div class="reg-cat-header"><span class="reg-cat-title">'+cat+'</span><span class="reg-cat-count">'+items.length+' variant'+(items.length!==1?'s':'')+'</span></div><div style="overflow-x:auto"><table class="reg-table"><thead><tr><th>Variant / Color / Pattern</th><th>Unit</th><th>Balance</th></tr></thead><tbody>';
+    items.forEach(item=>{
+      const bal=item.balance;
+      const balClass=bal<=0?'out':bal<=10?'low':'ok';
+      const m=item.meta;
+      html+='<tr><td><strong>'+(m.variant||'—')+'</strong>'+(m.colorPattern?' <span style="color:rgba(44,31,20,0.5)">'+m.colorPattern+'</span>':'')+'</td><td style="font-size:11px;color:rgba(44,31,20,0.4)">'+(m.unit||'')+'</td><td><span class="reg-bal '+balClass+'">'+(bal%1===0?bal:bal.toFixed(1))+'</span></td></tr>';
+    });
+    html+='</tbody></table></div></div>';
+  });
+  content.innerHTML=html;
+}
+
+function setOvStatus(s,btn){
+  ovStatusFilter=s;
+  document.querySelectorAll('#page-overview .log-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverviewTab();
+}
+
+function renderOverviewTab(){
+  const search=(document.getElementById('ov-search').value||'').toLowerCase();
+  const cat=document.getElementById('ov-cat-filter').value;
+  const tbody=document.getElementById('ov-tbody');
+  if(!tbody)return;
+  const balMap={};
+  const metaMap={};
+  registerData.forEach(r=>{
+    const key=[r['Category'],r['Variant']||'',r['Color/Pattern']||''].join('|');
+    if(!balMap[key]){balMap[key]=0;metaMap[key]={category:r['Category'],variant:r['Variant']||'',color:r['Color/Pattern']||'',unit:r['Unit']||''};}
+    balMap[key]+=String(r['Type (IN/OUT)']).toUpperCase()==='IN'?(Number(r['Qty'])||0):-(Number(r['Qty'])||0);
+  });
+  const items=Object.keys(balMap).map(key=>({...metaMap[key],balance:Math.round(balMap[key]*100)/100}));
+  const filtered=items.filter(item=>{
+    const ms=!search||[item.category,item.variant,item.color].join(' ').toLowerCase().includes(search);
+    const cs=!cat||item.category===cat;
+    const bal=item.balance;
+    const ss=ovStatusFilter==='all'?true:ovStatusFilter==='ok'?bal>10:ovStatusFilter==='low'?bal>0&&bal<=10:ovStatusFilter==='out'?bal<=0:true;
+    return ms&&cs&&ss;
+  }).sort((a,b)=>a.category.localeCompare(b.category));
+  document.getElementById('ov-count').textContent=filtered.length+' variants';
+  tbody.innerHTML='';
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" class="empty-state">No variants found</td></tr>';return;}
+  filtered.forEach(item=>{
+    const bal=item.balance;
+    const status=bal<=0?'OUT':bal<=10?'LOW':'OK';
+    const statusColor=bal<=0?'#C0392B':bal<=10?'#92400E':'#166534';
+    const statusBg=bal<=0?'#FFEBEE':bal<=10?'#FFF8E1':'#E8F5E9';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="padding:8px 12px;font-size:11px;font-weight:600;color:#1565C0">${item.category}</td><td style="padding:8px 12px;font-size:12px">${item.variant||'—'}</td><td style="padding:8px 12px;font-size:12px;font-weight:500">${item.color||'—'}</td><td style="padding:8px 12px;font-size:11px;color:rgba(44,31,20,0.4)">${item.unit||''}</td><td style="padding:8px 12px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;font-size:13px">${bal%1===0?bal:bal.toFixed(1)}</td><td style="padding:8px 12px;text-align:center"><span style="background:${statusBg};color:${statusColor};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${status}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCostsTab(){
+  const search=(document.getElementById('cost-search').value||'').toLowerCase();
+  const cat=document.getElementById('cost-cat-filter').value;
+  const content=document.getElementById('costs-content');
+  if(!content)return;
+  const inEntries=registerData.filter(r=>String(r['Type (IN/OUT)']).toUpperCase()==='IN'&&(Number(r['Rate'])||0)>0);
+  const latestRateMap={};
+  const historyMap={};
+  inEntries.forEach(r=>{
+    const key=[r['Category'],r['Variant']||'',r['Color/Pattern']||''].join('|');
+    if(!historyMap[key])historyMap[key]=[];
+    historyMap[key].push({date:r['Date']||'',supplier:r['Supplier']||'',qty:Number(r['Qty'])||0,rate:Number(r['Rate'])||0,unit:r['Unit']||'',category:r['Category'],color:r['Color/Pattern']||'',variant:r['Variant']||''});
+  });
+  Object.keys(historyMap).forEach(key=>{const entries=historyMap[key].sort((a,b)=>new Date(b.date)-new Date(a.date));latestRateMap[key]=entries[0];});
+  const keys=Object.keys(latestRateMap).filter(key=>{const m=latestRateMap[key];const ms=!search||[m.category,m.color,m.variant].join(' ').toLowerCase().includes(search);const cs=!cat||m.category===cat;return ms&&cs;}).sort();
+  if(!keys.length){content.innerHTML='<div class="empty-state">No cost data yet.</div>';return;}
+  const byCat={};
+  keys.forEach(key=>{const m=latestRateMap[key];if(!byCat[m.category])byCat[m.category]=[];byCat[m.category].push({key,latest:m,history:historyMap[key]});});
+  let html='';
+  Object.keys(byCat).sort().forEach(catName=>{html+=`<div style="background:var(--surface);border-radius:12px;border:1px solid var(--border);margin-bottom:16px;overflow:hidden"><div style="padding:10px 16px;background:#1565C0;color:#fff;font-size:13px;font-weight:700">${catName}</div>`;byCat[catName].forEach(({key,latest,history})=>{const label=[latest.variant,latest.color].filter(Boolean).join(' — ')||'—';html+=`<div style="border-bottom:1px solid var(--border);padding:12px 16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:600;color:var(--bark)">${label}</div><div style="font-size:16px;font-weight:700;color:#1565C0">₹${latest.rate} <span style="font-size:11px;font-weight:400;color:rgba(44,31,20,0.4)">per ${latest.unit}</span></div></div><div style="font-size:11px;color:rgba(44,31,20,0.4);margin-bottom:8px">Last purchased: ${latest.date||'—'} · ${latest.supplier||'—'}</div>`;if(history.length>1){html+=`<details style="margin-top:4px"><summary style="font-size:11px;color:#1565C0;cursor:pointer;font-weight:600">View price history (${history.length} entries)</summary><table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px"><tr style="background:#EFF6FF"><th style="padding:4px 8px;text-align:left">Date</th><th style="padding:4px 8px;text-align:left">Supplier</th><th style="padding:4px 8px;text-align:right">Qty</th><th style="padding:4px 8px;text-align:right">Rate</th><th style="padding:4px 8px;text-align:right">Total</th></tr>`;history.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(h=>{html+=`<tr style="border-bottom:1px solid #EFF6FF"><td style="padding:4px 8px">${h.date||'—'}</td><td style="padding:4px 8px">${h.supplier||'—'}</td><td style="padding:4px 8px;text-align:right">${h.qty} ${h.unit}</td><td style="padding:4px 8px;text-align:right;font-weight:600">₹${h.rate}</td><td style="padding:4px 8px;text-align:right">₹${Math.round(h.qty*h.rate)}</td></tr>`;});html+=`</table></details>`;}html+=`</div>`;});html+=`</div>`;});content.innerHTML=html;
 }
 
 function showToast(msg){
