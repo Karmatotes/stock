@@ -1020,7 +1020,7 @@ function onMaterialChange(){
 
 const METRES_MATERIALS=['Jute Fabric','Cotton Canvas','Juco Fabric','Kadhi Fabric','Non-woven','POV Sheet','Parachute','Matt Fabric','Handles','Zippers','Lace','Webbing'];
 const INV_FABRIC_CONFIG={
-  'Jute Fabric':   {variations:['Half-White','Natural','Printed','Colored'],gsm:['14/15','13/13','12/12']},
+  'Jute Fabric':   {variations:['Half-White','Natural','Oxford Jute','Printed','Colored'],gsm:['14/15','13/13','12/12']},
   'Cotton Canvas': {variations:['Natural','Colored','Laminated'],           gsm:['225','300','310','340','400','490','570']},
   'Juco Fabric':   {variations:['Laminated','Non-Laminated'],               gsm:[]},
   'Kadhi Fabric':  {variations:['Natural'],                                 gsm:['90','120','135','150']},
@@ -1087,6 +1087,14 @@ function onInvVariationChange(){
   const label=document.getElementById('si-color-label');
   const sel=document.getElementById('si-color');
   if(!wrap||!sel)return;
+
+  // Oxford Jute — no color or GSM needed
+  if(variation==='Oxford Jute'){
+    wrap.style.display='none';
+    const gsmSel=document.getElementById('si-gsm');
+    if(gsmSel){gsmSel.innerHTML='<option value="">N/A — Oxford Jute</option>';}
+    return;
+  }
 
   let colors=null;
   let lbl='Color';
