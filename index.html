@@ -206,23 +206,46 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
         </optgroup>
       </select>
     </div>
+
+    <!-- VARIATION FIELD (shows for fabrics from config) -->
+    <div class="form-group" id="si-variation-group" style="display:none">
+      <label>Variation</label>
+      <select class="form-control" id="si-variation" onchange="onVariationChange()">
+        <option value="">Select variation...</option>
+      </select>
+    </div>
+
+    <!-- GSM FIELD (shows for fabrics with GSM) -->
+    <div class="form-group" id="si-gsm-group" style="display:none">
+      <label>GSM</label>
+      <select class="form-control" id="si-gsm">
+        <option value="">Select GSM...</option>
+      </select>
+    </div>
+
+    <!-- COLOR FIELD (shows when "Colored" variation is selected) -->
+    <div class="form-group" id="si-color-group" style="display:none">
+      <label>Color / Pattern</label>
+      <input class="form-control" id="si-color" placeholder="e.g. Dark Green, Navy Blue">
+    </div>
+
     <div id="current-stock-display" style="display:none;margin-bottom:14px;padding:8px 12px;background:var(--cream);border-radius:7px;font-size:12px;color:var(--bark)"></div>
     <div class="form-row">
       <div class="form-group">
-        <label>Quantity Received <span class="req">*</span></label>
-        <input class="form-control" id="si-qty" type="number" placeholder="100" min="0.1" step="0.1" oninput="updateTotal();updateQtyHint()">
+        <label>Quantity Received</label>
+        <input class="form-control" id="si-qty" type="number" placeholder="100 (Optional)" min="0.1" step="0.1" oninput="updateTotal();updateQtyHint()">
       </div>
       <div class="form-group">
-        <label>Unit Cost ₹ <span class="req">*</span></label>
-        <input class="form-control" id="si-unit-cost" type="number" placeholder="120" min="0" oninput="updateTotal()">
+        <label>Unit Cost ₹</label>
+        <input class="form-control" id="si-unit-cost" type="number" placeholder="120 (Optional)" min="0" oninput="updateTotal()">
         <div class="form-hint" id="si-unit-hint"></div>
       </div>
     </div>
     <div class="total-display" id="si-total-display"></div>
     <div class="section-label">Supplier Details</div>
     <div class="form-group">
-      <label>Supplier Name <span class="req">*</span></label>
-      <input class="form-control" id="si-supplier" placeholder="e.g. Ravi Textiles">
+      <label>Supplier Name</label>
+      <input class="form-control" id="si-supplier" placeholder="e.g. Ravi Textiles (Optional)">
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -366,8 +389,8 @@ header{background:var(--blue);color:#fff;padding:0 24px;height:60px;display:flex
 <div class="toast" id="toast"></div>
 
 <script>
-const SHEET_URL="https://script.google.com/macros/s/AKfycbxpcfocezAqlwg37_SujPuDilIyXEeve5A8Niir1vohU3pz2sytBrSIjQyX6vLmoIPN/exec";
-const CONFIG_URL="https://script.google.com/macros/s/AKfycbxRr3o5M_bYR3V9oZf2qMH0-Hrp13qP_PcA7h-1KddIPx6TzfMzY6KoYnTMxaa8mnSa/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbzFjeuSQroz9_ZNyEPCl64sqSNsL_OqJIe38PjGK8HJd2opEycbQtgVUb2ye_i2jVEb/exec";
+const CONFIG_URL="https://script.google.com/macros/s/AKfycbzFjeuSQroz9_ZNyEPCl64sqSNsL_OqJIe38PjGK8HJd2opEycbQtgVUb2ye_i2jVEb/exec";
 let configData=null;
 let materials=[],stockLog=[],registerData=[];
 let logFilter='all',invDateFilter='all',ovStatusFilter='all';
@@ -442,12 +465,10 @@ function switchTab(tab){
 function populateMaterialDropdown(){
   const sel=document.getElementById('si-material');
   if(!sel)return;
-  // Clear non-optgroup options but keep optgroups
   const optgroups=sel.querySelectorAll('optgroup');
-  // Re-populate from config - APPEND only
-  if(configData&&configData.materials){
+  if(configData&&configData.fabrics){
     const fabricGroup=Array.from(optgroups).find(og=>og.label.includes('Fabrics'));
-    configData.materials.forEach(m=>{
+    configData.fabrics.forEach(m=>{
       if(fabricGroup){
         const exists=Array.from(fabricGroup.querySelectorAll('option')).some(o=>o.value===m.name);
         if(!exists){
@@ -458,6 +479,92 @@ function populateMaterialDropdown(){
         }
       }
     });
+  }
+}
+
+function onMaterialChange(){
+  const matName=document.getElementById('si-material').value;
+  const mat=materials.find(m=>m['Material']===matName);
+  const display=document.getElementById('current-stock-display');
+  const hint=document.getElementById('si-unit-hint');
+  
+  // Hide/show conditional fields
+  const variationGroup=document.getElementById('si-variation-group');
+  const gsmGroup=document.getElementById('si-gsm-group');
+  const colorGroup=document.getElementById('si-color-group');
+  
+  // Reset dropdowns
+  document.getElementById('si-variation').innerHTML='<option value="">Select variation...</option>';
+  document.getElementById('si-gsm').innerHTML='<option value="">Select GSM...</option>';
+  document.getElementById('si-color').value='';
+  
+  // Debug logging
+  console.log('Selected material:', matName);
+  console.log('Config data:', configData);
+  console.log('Looking for fabric config...');
+  
+  // Check if this fabric has config data
+  const fabricConfig=configData&&configData.fabrics?configData.fabrics.find(f=>f.name===matName):null;
+  console.log('Found fabric config:', fabricConfig);
+  
+  if(fabricConfig){
+    // Show variation dropdown
+    if(fabricConfig.variations&&fabricConfig.variations.length){
+      variationGroup.style.display='block';
+      fabricConfig.variations.forEach(v=>{
+        const opt=document.createElement('option');
+        opt.value=v;
+        opt.textContent=v;
+        document.getElementById('si-variation').appendChild(opt);
+      });
+    }else{
+      variationGroup.style.display='none';
+    }
+    
+    // Show GSM dropdown
+    if(fabricConfig.gsm&&fabricConfig.gsm.length){
+      gsmGroup.style.display='block';
+      fabricConfig.gsm.forEach(g=>{
+        const opt=document.createElement('option');
+        opt.value=g;
+        opt.textContent=g+' GSM';
+        document.getElementById('si-gsm').appendChild(opt);
+      });
+    }else{
+      gsmGroup.style.display='none';
+    }
+  }else{
+    variationGroup.style.display='none';
+    gsmGroup.style.display='none';
+    colorGroup.style.display='none';
+  }
+  
+  if(mat){
+    const stock=Number(mat['Current Stock'])||0;
+    const unit=mat['Unit']||'';
+    display.style.display='block';
+    display.textContent='Current stock: '+stock+' '+unit;
+    const lastEntry=stockLog.find(l=>String(l['Material'])===matName&&String(l['Type']).toUpperCase()==='IN');
+    if(lastEntry&&lastEntry['Unit Cost']){
+      hint.textContent='Last purchase: '+fmtINR(lastEntry['Unit Cost'])+' per '+unit;
+      document.getElementById('si-unit-cost').value=Number(lastEntry['Unit Cost'])||'';
+    }else{
+      hint.textContent='Unit: '+unit;
+    }
+  }else{display.style.display='none';hint.textContent='';}
+  updateTotal();updateQtyHint();
+}
+
+function onVariationChange(){
+  const variation=document.getElementById('si-variation').value;
+  const colorGroup=document.getElementById('si-color-group');
+  
+  // Show color field if "Colored" variation is selected
+  if(variation.toLowerCase().includes('colored')||variation.toLowerCase().includes('colour')){
+    colorGroup.style.display='block';
+  }else{
+    colorGroup.style.display='none';
+    document.getElementById('si-color').value='';
   }
 }
 
@@ -504,27 +611,6 @@ function renderAlertBar(){
   }
 }
 
-function onMaterialChange(){
-  const matName=document.getElementById('si-material').value;
-  const mat=materials.find(m=>m['Material']===matName);
-  const display=document.getElementById('current-stock-display');
-  const hint=document.getElementById('si-unit-hint');
-  if(mat){
-    const stock=Number(mat['Current Stock'])||0;
-    const unit=mat['Unit']||'';
-    display.style.display='block';
-    display.textContent='Current stock: '+stock+' '+unit;
-    const lastEntry=stockLog.find(l=>String(l['Material'])===matName&&String(l['Type']).toUpperCase()==='IN');
-    if(lastEntry&&lastEntry['Unit Cost']){
-      hint.textContent='Last purchase: '+fmtINR(lastEntry['Unit Cost'])+' per '+unit;
-      document.getElementById('si-unit-cost').value=Number(lastEntry['Unit Cost'])||'';
-    }else{
-      hint.textContent='Unit: '+unit;
-    }
-  }else{display.style.display='none';hint.textContent='';}
-  updateTotal();updateQtyHint();
-}
-
 function updateTotal(){
   const qty=Number(document.getElementById('si-qty').value)||0;
   const cost=Number(document.getElementById('si-unit-cost').value)||0;
@@ -546,20 +632,23 @@ function updateQtyHint(){
 async function submitStockIn(){
   const material=document.getElementById('si-material').value;
   if(!material){showToast('Select a material');return;}
-  const qty=Number(document.getElementById('si-qty').value)||0;
-  if(!qty){showToast('Enter quantity');return;}
-  const unitCost=Number(document.getElementById('si-unit-cost').value)||0;
-  if(!unitCost){showToast('Enter unit cost');return;}
-  const supplier=document.getElementById('si-supplier').value.trim();
-  if(!supplier){showToast('Enter supplier name');return;}
+  
   const mat=materials.find(m=>m['Material']===material);
   const unit=mat?mat['Unit']:'';
+  const variation=document.getElementById('si-variation').value||'';
+  const gsm=document.getElementById('si-gsm').value||'';
+  const color=document.getElementById('si-color').value||'';
+  const qty=Number(document.getElementById('si-qty').value)||0;
+  const unitCost=Number(document.getElementById('si-unit-cost').value)||0;
+  const supplier=document.getElementById('si-supplier').value.trim();
+  
   const btn=document.getElementById('si-submit');
   btn.disabled=true;btn.textContent='Saving...';
   const result=await sheetPost({
     action:'stockIn',material,qty,unitCost,unit,supplier,
     reference:document.getElementById('si-reference').value||'',
-    date:document.getElementById('si-date').value||''
+    date:document.getElementById('si-date').value||'',
+    variation,gsm
   });
   if(result&&result.success){
     const matData=await sheetCall({action:'getMaterials'});
@@ -568,9 +657,14 @@ async function submitStockIn(){
     if(logData&&logData.stockLog)stockLog=logData.stockLog;
     document.getElementById('stockin-form-body').style.display='none';
     const ss=document.getElementById('stockin-success');ss.classList.add('visible');
-    document.getElementById('si-success-title').textContent=qty+' '+unit+' of '+material+' added';
-    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+fmtINR(qty*unitCost)+' · Stock updated';
-    showToast('Stock updated: '+material+' +'+qty+' '+unit);
+    const detailParts=[variation,gsm?gsm+' GSM':'',color].filter(Boolean);
+    const detail=detailParts.length?' ('+detailParts.join(', ')+')':'';
+    const qtyMsg=qty>0?qty+' '+unit+' of ':'';
+    document.getElementById('si-success-title').textContent=qtyMsg+material+detail+' added';
+    const costMsg=unitCost>0&&qty>0?fmtINR(qty*unitCost)+' · ':'';
+    document.getElementById('si-success-sub').textContent=(supplier?'From '+supplier+' · ':'')+costMsg+'Stock updated';
+    const toastMsg=qty>0?'Stock updated: '+material+' +'+qty+' '+unit:'Material entry added: '+material;
+    showToast(toastMsg);
     renderStockLevels();renderAlertBar();populateMaterialDropdown();
   }else{
     showToast('Save failed. Try again.');
@@ -583,11 +677,14 @@ function resetStockIn(){
   document.getElementById('stockin-success').classList.remove('visible');
   document.getElementById('si-submit').disabled=false;
   document.getElementById('si-submit').textContent='✓ Log Stock In';
-  ['si-material','si-qty','si-unit-cost','si-supplier','si-reference','si-date'].forEach(id=>{
+  ['si-material','si-qty','si-unit-cost','si-supplier','si-reference','si-date','si-variation','si-gsm','si-color'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('current-stock-display').style.display='none';
   document.getElementById('si-unit-hint').textContent='';
+  document.getElementById('si-variation-group').style.display='none';
+  document.getElementById('si-gsm-group').style.display='none';
+  document.getElementById('si-color-group').style.display='none';
 }
 
 function setInvDateFilter(f,btn){
